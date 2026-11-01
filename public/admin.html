@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Admin | Mzigua Tours &amp; Safari</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#f4f7f5;color:#1c2422}
+header{background:#12332b;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #e8a03a}
+main{max-width:1100px;margin:0 auto;padding:20px}.box{max-width:360px;margin:12vh auto;background:#fff;padding:28px;border-radius:14px;border:1px solid #d5ddd8}
+label{display:grid;gap:4px;margin:12px 0;font-weight:600}input,select{font:inherit;padding:10px;border:1px solid #cbd5d0;border-radius:8px;width:100%}
+button{background:#e8a03a;border:0;border-radius:999px;padding:10px 20px;font-weight:600;cursor:pointer;font:inherit;font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.c{background:#fff;border:1px solid #d5ddd8;border-radius:12px;padding:14px}.c b{display:block;font-size:1.7rem;color:#1d4a3f}
+.t{overflow-x:auto;background:#fff;border:1px solid #d5ddd8;border-radius:12px;margin-bottom:20px}
+table{border-collapse:collapse;width:100%;min-width:520px}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #e3e9e5;vertical-align:top}th{background:#12332b;color:#fff}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}h2{margin:22px 0 8px}#err{color:#b00020}
+</style></head><body>
+<div id="login" class="box"><h1>Admin login</h1>
+<form id="lf"><label>Email<input id="em" type="email" required autocomplete="username"></label>
+<label>Password<input id="pw" type="password" required autocomplete="current-password"></label>
+<button>Sign in</button><p id="err" role="alert"></p></form></div>
+<div id="app" hidden>
+<header><strong>MZIGUA TOURS &amp; SAFARI · Admin</strong><span><button id="rf">Refresh</button> <button id="out">Sign out</button></span></header>
+<main><div class="cards" id="st"></div>
+<h2>Bookings</h2><div class="t" id="bk"></div>
+<div class="g"><div><h2>Top pages (30 days)</h2><div class="t" id="tp"></div></div>
+<div><h2>Devices</h2><div class="t" id="dv"></div></div>
+<div><h2>Where visitors come from</h2><div class="t" id="rr"></div></div></div>
+<h2>Recent visitors</h2><div class="t" id="rv"></div></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+if(!MZ.url||!MZ.key){$("err").textContent="Add your Supabase URL and key in config.js first."}
+var sb=window.supabase&&MZ.url?supabase.createClient(MZ.url,MZ.key):null;
+function el(t,x){var e=document.createElement(t);if(x!=null)e.textContent=x;return e}
+function tbl(box,heads,rows){box.textContent="";var t=el("table"),h=el("tr");heads.forEach(function(x){h.appendChild(el("th",x))});t.appendChild(h);
+rows.forEach(function(r){var tr=el("tr");r.forEach(function(c){var td=el("td");if(c&&c.nodeType)td.appendChild(c);else td.textContent=c==null?"":c;tr.appendChild(td)});t.appendChild(tr)});
+if(!rows.length){var tr=el("tr"),td=el("td","No data yet");td.colSpan=heads.length;tr.appendChild(td);t.appendChild(tr)}box.appendChild(t)}
+function top(a,f,n){var m={};a.forEach(function(x){var k=f(x)||"(direct)";m[k]=(m[k]||0)+1});return Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(x,y){return y[1]-x[1]}).slice(0,n)}
+function fmt(d){return new Date(d).toLocaleString()}
+function show(on){$("login").hidden=on;$("app").hidden=!on;if(on)load()}
+if(sb)sb.auth.getSession().then(function(r){show(!!r.data.session)});
+$("lf").onsubmit=function(e){e.preventDefault();if(!sb)return;sb.auth.signInWithPassword({email:$("em").value,password:$("pw").value}).then(function(r){if(r.error)$("err").textContent=r.error.message;else show(true)})};
+$("out").onclick=function(){sb.auth.signOut().then(function(){show(false)})};$("rf").onclick=function(){load()};
+function load(){
+var since=new Date(Date.now()-30*864e5).toISOString();
+Promise.all([sb.from("bookings").select("*").order("created_at",{ascending:false}).limit(500),
+sb.from("page_views").select("path,device,referrer,language,session_id,created_at").gte("created_at",since).order("created_at",{ascending:false}).limit(5000)]).then(function(r){
+var b=r[0].data||[],v=r[1].data||[],w=Date.now()-7*864e5;
+var v7=v.filter(function(x){return new Date(x.created_at)>w}),u={};v.forEach(function(x){if(x.session_id)u[x.session_id]=1});
+$("st").textContent="";[["Bookings",b.length],["New bookings",b.filter(function(x){return x.status=="new"}).length],["Page views (7 days)",v7.length],["Page views (30 days)",v.length],["Visitors (30 days)",Object.keys(u).length]].forEach(function(c){var d=el("div");d.className="c";d.appendChild(el("b",c[1]));d.appendChild(el("span",c[0]));$("st").appendChild(d)});
+tbl($("bk"),["Received","Name","Email","Package","Start","People","Message","Status"],b.map(function(x){var s=el("select");["new","contacted","confirmed","cancelled"].forEach(function(o){var op=el("option",o);if(o==x.status)op.selected=true;s.appendChild(op)});
+s.onchange=function(){sb.from("bookings").update({status:s.value}).eq("id",x.id).then(function(r){if(r.error)alert(r.error.message)})};
+return [fmt(x.created_at),x.name,x.email,x.package,x.start_date,x.people,x.message,s]}));
+tbl($("tp"),["Page","Views"],top(v,function(x){return x.path},10));
+tbl($("dv"),["Device","Views"],top(v,function(x){return x.device},5));
+tbl($("rr"),["Referrer","Views"],top(v,function(x){try{return x.referrer?new URL(x.referrer).hostname:""}catch(e){return ""}},10));
+tbl($("rv"),["Time","Page","Device","Language","Referrer"],v.slice(0,50).map(function(x){return [fmt(x.created_at),x.path,x.device,x.language,x.referrer]}))})}
+</script></body></html>
