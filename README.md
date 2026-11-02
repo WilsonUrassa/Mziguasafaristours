@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Mzigua Tours & Safari
 
 Static website (Vercel) + bookings, visitor stats and admin login (Supabase) + code on GitHub.
@@ -26,7 +25,3 @@ Then Settings > Domains to add your own domain. Every push to GitHub redeploys t
 - Admin: /admin.html  (bookings, status updates, visitor details, page views, devices, referrers).
 - Photos: put images in public/images and set them in public/index.html, e.g. IMG["route-lemosho"]="images/lemosho.jpg".
 - SEO: after launch, add the site to Google Search Console and submit /sitemap.xml. Replace www.mziguasafaritours.com with your real domain in index.html, robots.txt and sitemap.xml.
-=======
-# Mziguasafaristours
-Tourism Website
->>>>>>> dabdd49488cabdc6a5e0563d7b5c9f813202b906
