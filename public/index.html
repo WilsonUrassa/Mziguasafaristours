@@ -99,6 +99,7 @@ footer a{color:var(--sun)}
 .im{background:#cfd9d4 center/cover;min-height:150px;display:grid;place-items:center;text-align:center;color:var(--mut);font-size:.8rem;padding:8px}.im.big{min-height:300px;border-radius:14px}
 @media (prefers-color-scheme:dark){.im{background-color:var(--line)}.dn,.pc .go{color:var(--sun)}}
 .back{display:inline-block;margin-bottom:16px;font-weight:600;text-decoration:none}
+.pc .go{display:inline-block;margin-top:8px}.card[data-detail]{cursor:pointer}.side .seg{width:100%;display:flex}.side .seg button{flex:1}
 .facts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.facts span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:.88rem}
 .it{list-style:none;padding:0;margin:0 0 0 8px;border-left:3px solid var(--sun)}.it li{padding:0 0 18px 22px;position:relative}.it li::before{content:"";position:absolute;left:-10px;top:5px;width:14px;height:14px;border-radius:50%;background:var(--ink2);border:3px solid var(--bg)}.it h3{font-size:1.05rem;margin:0}.it p{margin:2px 0 0;color:var(--mut);font-size:.9rem}.dn{font-weight:700;color:var(--ink2);font-size:.85rem}
 .side{padding:20px;position:sticky;top:80px;display:grid;gap:10px}.side .btn{text-align:center}.wab{background:#25d366;color:#06300f}
@@ -344,22 +345,94 @@ function wa(t){return "https://wa.me/255703138144?text="+encodeURIComponent(t)}
 function slot(k,c){var s=IMG[k];return '<div class="im '+(c||'')+'" role="img" aria-label="'+k+'"'+(s?' style="background-image:url('+s+')"':'')+'>'+(s?'':'<span>Photo slot: '+k+'</span>')+'</div>'}
 function money(n){return "$"+n.toLocaleString("en-US")}
 var pk=document.getElementById("pk");
-G.forEach(function(g){var a=document.createElement("a");a.className="pc";a.href="#book";
-a.innerHTML='<div class="b"><h3>'+g[0]+' days · Kilimanjaro climb</h3><p><strong>Routes:</strong> '+g[1]+'</p><div class="price">'+money(g[2])+' <small style="font:400 .8rem Instrument Sans,sans-serif">per person</small></div><p class="note">Group price for 2 or more climbers</p><span class="go">Choose this package and book</span></div>';
-a.addEventListener("click",function(){pickPackage(g[0])});pk.appendChild(a)});
+G.forEach(function(g){var a=document.createElement("a");a.className="pc";a.href="#detail-kili-"+g[0];
+a.innerHTML='<div class="b"><h3>'+g[0]+' days · Kilimanjaro climb</h3><p><strong>Routes:</strong> '+g[1]+'</p><div class="price">'+money(g[2])+' <small style="font:400 .8rem Instrument Sans,sans-serif">per person</small></div><p class="note">Group price for 2 or more climbers · Solo option available</p><span class="go">View itinerary &amp; choose package</span></div>';pk.appendChild(a)});
 function pickPackage(days){["ps","v2"].forEach(function(id){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++)if(sel.options[i].text.indexOf(days+" days – ")===0){sel.selectedIndex=i;break}})}
 function pkg(k,n){var o=D[k],r=R.filter(function(x){return x[0].toLowerCase()==k&&x[1]==n})[0],h="",i=0;
 o.p[n].split(",").forEach(function(c){var t=c=="S"?(o.S||SD):c=="E"?(o.E||ED):o.s[c],q=t.split("|");i++;h+='<li><div class="dn">Day '+i+'</div><h3>'+q[0]+'</h3><p>'+q.slice(1).join(" · ")+'</p></li>'});
 var lbl=o.n+" route, "+n+" days";
 return '<section><div class="wrap"><a class="back" href="#routes">Back to all packages</a>'+slot("route-"+k,"big")+'<h1 style="margin-top:20px;font-size:clamp(2rem,5vw,3.2rem)">'+lbl+'</h1><div class="facts"><span>'+money(r[2])+' per person</span><span>'+n+' days</span><span>Difficulty: '+o.lv+'</span><span>Summit: Uhuru Peak 5,895 m</span></div><p style="max-width:60ch">'+o.d+'</p><div class="two" style="margin-top:28px"><div><h2>Itinerary</h2><ol class="it">'+h+'</ol><p class="note">This is the typical plan. Your guide may adjust it for weather and group pace.</p></div><aside class="side card"><div class="price">'+money(r[2])+'</div><span class="note">per person · park fees, meals, tents and airport transfers included</span><a class="btn" href="#book" onclick="pick(\''+k+'\','+n+')">Book this package</a><a class="btn wab" target="_blank" rel="noopener" href="'+wa("Hello Mzigua Tours, I am interested in the "+lbl+" ("+money(r[2])+" per person).")+'">Chat on WhatsApp</a><a href="#included">See what is included</a></aside></div><div class="gal">'+slot("route-"+k+"-1")+slot("route-"+k+"-2")+slot("route-"+k+"-3")+'</div></div></section>'}
 function pick(k,n){pickPackage(n)}
-function view(){var h=location.hash.slice(1),pv=document.getElementById("pkgview"),hm=document.getElementById("home"),m=/^pkg-([a-z]+)-(\d+)$/.exec(h);
-if(m&&D[m[1]]&&D[m[1]].p[m[2]]){pv.innerHTML=pkg(m[1],+m[2]);hm.hidden=true;pv.hidden=false;document.title=D[m[1]].n+" route "+m[2]+" days | Mzigua Tours & Safari";window.scrollTo(0,0)}
+
+var DETAIL={
+"meru":{type:"Mountain climb",title:"Mount Meru",duration:"Usually 3–4 days",desc:"A guided climb through Arusha National Park to Socialist Peak, with forest, wildlife and spectacular views. Exact itinerary and price are confirmed for your dates.",itinerary:["Arrival and briefing in Arusha","Guided ascent through the forest to the mountain huts","Summit attempt and descent according to the selected itinerary","Return to the park gate and transfer"],group:null,solo:null},
+"chemka":{type:"Day trip",title:"Chemka Hot Springs",duration:"About 5 hours",desc:"A relaxing visit to the clear geothermal pools at Kikuletwa (Chemka), with time to swim and enjoy the natural setting.",itinerary:["Pick-up in Moshi","Drive to Chemka Hot Springs","Free time to swim and relax","Return transfer to Moshi"],group:100,solo:null},
+"materuni":{type:"Day trip",title:"Materuni Waterfall & Coffee Tour",duration:"About 5 hours",desc:"Explore the green foothills of Kilimanjaro, walk to Materuni Waterfall and experience a traditional Chagga coffee activity.",itinerary:["Pick-up in Moshi and drive to Materuni village","Guided walk to the waterfall","Local coffee experience","Return to Moshi"],group:120,solo:null},
+"rau":{type:"Day trip",title:"Rau Forest Reserve",duration:"Half day",desc:"A guided forest walk to experience the natural environment and the historic mvule tree.",itinerary:["Pick-up and transfer to Rau Forest","Guided forest walk and visit to the mvule tree","Return to Moshi"],group:100,solo:null},
+"day-hike":{type:"Mountain day trip",title:"Kilimanjaro Day Hike",duration:"About 8 hours",desc:"Experience the lower slopes and rainforest of Kilimanjaro on a guided day hike. The exact gate and trail depend on park conditions.",itinerary:["Early transfer to the selected Kilimanjaro gate","Park registration and briefing","Guided rainforest hike","Return to the gate and transfer to Moshi"],group:350,solo:null},
+"coffee":{type:"Cultural day trip",title:"Coffee Farm Tour",duration:"Half day (customizable)",desc:"Visit a local coffee farm and learn about growing, harvesting, roasting and preparing Tanzanian coffee.",itinerary:["Transfer to a local coffee-growing community","Meet local farmers and learn about coffee cultivation","Traditional coffee preparation and tasting","Return transfer"],group:null,solo:null},
+"langoni":{type:"Day trip",title:"Langoni Day Trip",duration:"To be confirmed",desc:"A relaxed guided outing in the Kilimanjaro area. The route and activities are confirmed with your guide.",itinerary:["Pick-up in Moshi","Guided visit and activities at Langoni","Return transfer"],group:null,solo:null},
+"elephant-forest":{type:"Day trip",title:"Msitu wa Tembo (Elephant Forest)",duration:"To be confirmed",desc:"A guided nature experience in the Elephant Forest area. Confirm the exact route and activities with our team before travel.",itinerary:["Pick-up and transfer","Guided forest visit","Return transfer"],group:null,solo:null},
+"serengeti":{type:"Wildlife safari",title:"Serengeti National Park Safari",duration:"Customizable",desc:"Explore the Serengeti plains on guided game drives in search of its remarkable wildlife. Duration, accommodation and season determine the itinerary and price.",itinerary:["Pick-up and transfer to the Serengeti (route depends on duration)","Guided game drives in selected wildlife areas","Overnight stays according to your chosen lodge or camping plan","Return transfer to Arusha or Moshi"],group:null,solo:null},
+"ngorongoro":{type:"Wildlife safari",title:"Ngorongoro Crater Safari",duration:"Customizable",desc:"Enjoy a guided game drive in the Ngorongoro Conservation Area and crater. The trip can be arranged as part of a multi-day northern circuit safari.",itinerary:["Pick-up and drive to Ngorongoro Conservation Area","Descend into the crater for a guided game drive","Picnic lunch and wildlife viewing","Return to your overnight location or Arusha/Moshi"],group:null,solo:null},
+"tarangire":{type:"Wildlife safari",title:"Tarangire National Park Safari",duration:"Customizable",desc:"Discover Tarangire's elephant herds, baobab trees and seasonal wildlife. Ask for a day-trip or multi-day lodge itinerary.",itinerary:["Pick-up and transfer to Tarangire","Guided game drives in the park","Picnic lunch and further wildlife viewing","Return to Arusha or Moshi"],group:null,solo:null},
+"mkomazi":{type:"Wildlife safari",title:"Mkomazi National Park Safari",duration:"Customizable",desc:"Visit a quieter national park near Kilimanjaro, known for its landscapes and conservation areas. Confirm the itinerary and available activities with our team.",itinerary:["Pick-up and transfer to Mkomazi","Park entry and guided game drive","Picnic break and further exploration","Return transfer"],group:null,solo:null},
+"maasai":{type:"Cultural experience",title:"Maasai Culture Tour",duration:"Customizable",desc:"Meet members of a Maasai community and learn about local traditions, daily life and cultural heritage through a respectful guided visit.",itinerary:["Transfer to the community visit location","Introduction and cultural exchange with local hosts","Learn about traditions and daily life","Return transfer"],group:null,solo:null},
+"luxury":{type:"Luxury lodge safari",title:"Northern Circuit Luxury Lodge Safari",duration:"6 days / 5 nights",desc:"A six-day northern circuit journey covering Lake Manyara, Tarangire, Ngorongoro and Serengeti with luxury lodge accommodation.",itinerary:["Day 1: Arusha to Lake Manyara","Day 2: Lake Manyara to Tarangire","Day 3: Tarangire to Ngorongoro","Day 4: Ngorongoro Crater to Serengeti","Day 5: Full day in central Serengeti","Day 6: Serengeti to Arusha"],group:3250,solo:4800}
+};
+var selectedDetailMode="group";
+function showDetail(id){
+var p=DETAIL[id];if(!p)return "";
+var isK=id.indexOf("kili-")===0, tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
+var title=isK?"Kilimanjaro "+tier[0]+"-day package":p.title;
+var intro=isK?"Choose your preferred route from the options included in this "+tier[0]+"-day package.":p.desc;
+var groupPrice=isK?tier[2]:p.group,soloPrice=p.solo;
+var routes=isK?tier[1].split(" / "):[];
+var routeSelect=isK?'<label style="max-width:420px">Choose your route<select id="detailRoute">'+routes.map(function(r){return '<option value="'+r.toLowerCase().replace(/ /g,"-")+'">'+r+'</option>'}).join("")+'</select></label><div id="detailMountainItinerary" style="margin-top:16px"></div>':'';
+var steps=p.itinerary.map(function(x,i){return '<li><div class="dn">'+(isK?"Itinerary information":("Step "+(i+1)))+'</div><h3>'+x+'</h3></li>'}).join("");
+var groupLabel=groupPrice==null?"Request group quotation":money(groupPrice)+(isK?" per person":" starting price");
+var soloLabel=soloPrice==null?"Request solo quotation":money(soloPrice)+(isK?" per person":"");
+return '<section><div class="wrap"><a class="back" href="#top">← Back to packages</a><span class="eyebrow">'+p.type+'</span><h1 style="font-size:clamp(2rem,5vw,3rem)">'+title+'</h1><p style="max-width:65ch">'+intro+'</p><div class="facts"><span>'+p.duration+'</span><span>Solo or group booking</span><span>Customized arrangements available</span></div>'+routeSelect+'<div class="two" style="margin-top:24px"><div><h2>Itinerary</h2>'+(isK?'<p>Select a route above to see the available day-by-day climbing plan. Northern Circuit detailed camp schedules are confirmed with your climbing consultant.</p>':'<ol class="it">'+steps+'</ol>')+'<p class="note">Itinerary details may be adjusted for weather, park conditions, accommodation availability and your confirmed travel dates.</p></div><aside class="side card"><h2 style="font-size:1.35rem">Choose your package type</h2><div class="seg" role="group" aria-label="Choose solo or group"><button type="button" id="detailGroup" aria-pressed="true">Group (2+)</button><button type="button" id="detailSolo" aria-pressed="false">Solo</button></div><div class="price" id="detailPrice">'+groupLabel+'</div><p class="note" id="detailPriceNote">'+(groupPrice==null?"Final price depends on dates, group size and selected services.":(isK?"Group price per person for 2 or more climbers.":"Displayed starting price; final quote depends on party size and selected services."))+'</p><button class="btn" type="button" id="detailBook">Continue to booking</button><a class="btn wab" id="detailWhatsApp" target="_blank" rel="noopener" href="'+wa("Hello Mzigua Tours, I am interested in "+title+" ("+selectedDetailMode+"). Please send me the itinerary and quotation.")+'">Ask on WhatsApp</a></aside></div></div></section>';
+}
+function bindDetail(id){
+var p=DETAIL[id],isK=id.indexOf("kili-")===0,tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
+var groupPrice=isK?tier[2]:p.group,soloPrice=p.solo;
+function update(mode){
+selectedDetailMode=mode;
+var price=mode==="group"?groupPrice:soloPrice;
+document.getElementById("detailGroup").setAttribute("aria-pressed",mode==="group");
+document.getElementById("detailSolo").setAttribute("aria-pressed",mode==="solo");
+document.getElementById("detailPrice").textContent=price==null?"Request a "+mode+" quotation":money(price)+(isK||mode==="solo"?" per person":" starting price");
+document.getElementById("detailPriceNote").textContent=price==null?"We will confirm the price based on your dates, number of travellers and selected services.":(isK&&mode==="group"?"Group price per person for 2 or more climbers.":"Price shown is indicative; confirm the final quotation with our team.");
+document.getElementById("detailWhatsApp").href=wa("Hello Mzigua Tours, I am interested in "+(isK?"Kilimanjaro "+tier[0]+"-day package":p.title)+". I prefer a "+mode+" package. Please send me the full itinerary and quotation.");
+}
+document.getElementById("detailGroup").onclick=function(){update("group")};
+document.getElementById("detailSolo").onclick=function(){update("solo")};
+document.getElementById("detailBook").onclick=function(){
+var sel=document.getElementById("ps"),label=(isK?"Kilimanjaro "+tier[0]+" days – "+tier[1]:p.title)+" ("+selectedDetailMode+" package)";
+var opt=document.createElement("option");opt.textContent=label;opt.value=label;sel.appendChild(opt);sel.value=label;
+document.querySelector('#bf input[name="g"]').value=selectedDetailMode==="solo"?1:2;
+document.querySelector('#bf textarea[name="m"]').value="Package type: "+selectedDetailMode+". Please confirm itinerary, availability and final price.";
+location.hash="book";document.getElementById("home").hidden=false;document.getElementById("pkgview").hidden=true;setTimeout(function(){document.getElementById("book").scrollIntoView({behavior:"smooth"})},0);
+};
+if(isK){
+var route=document.getElementById("detailRoute");
+function renderRoute(){
+var key=route.value.replace(/-/g," "),slug=route.value,day=tier[0],routeData=D[slug];
+var target=document.getElementById("detailMountainItinerary");
+if(routeData&&routeData.p[day]){
+var html=routeData.p[day].split(",").map(function(code,i){var item=code==="S"?(routeData.S||SD):code==="E"?(routeData.E||ED):routeData.s[code];var parts=item.split("|");return '<li><div class="dn">Day '+(i+1)+'</div><h3>'+parts[0]+'</h3><p>'+parts.slice(1).join(" · ")+'</p></li>'}).join("");
+target.innerHTML='<ol class="it">'+html+'</ol>';
+}else{target.innerHTML='<p class="note">A detailed '+key+' '+day+'-day itinerary and camp schedule will be confirmed by our climbing team before booking.</p>'}
+}
+route.addEventListener("change",renderRoute);renderRoute();
+}
+update("group");
+}
+
+function view(){var h=location.hash.slice(1),pv=document.getElementById("pkgview"),hm=document.getElementById("home"),m=/^pkg-([a-z]+)-(\d+)$/.exec(h),d=/^detail-(.+)$/.exec(h);
+if(d&&DETAIL[d[1]]){pv.innerHTML=showDetail(d[1]);hm.hidden=true;pv.hidden=false;document.title=(d[1].indexOf("kili-")===0?"Kilimanjaro package":DETAIL[d[1]].title)+" | Mzigua Tours & Safari";bindDetail(d[1]);window.scrollTo(0,0)}
+else if(m&&D[m[1]]&&D[m[1]].p[m[2]]){pv.innerHTML=pkg(m[1],+m[2]);hm.hidden=true;pv.hidden=false;document.title=D[m[1]].n+" route "+m[2]+" days | Mzigua Tours & Safari";window.scrollTo(0,0)}
 else{pv.hidden=true;hm.hidden=false;var el=h&&document.getElementById(h);if(el)el.scrollIntoView();else window.scrollTo(0,0)}}
 document.querySelectorAll(".ph").forEach(function(e){var k="card-"+e.getAttribute("aria-label").toLowerCase().replace(/[^a-z]+/g,"-");e.textContent="";if(IMG[k])e.style.background="url("+IMG[k]+") center/cover";else e.textContent="Photo slot: "+k});
 var ic=document.createElement("link");ic.rel="icon";ic.href="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#e8a03a"/><path d="M6 50 24 22l8 12 6-8 20 24z" fill="#12332b"/></svg>');document.head.appendChild(ic);
 if(IMG.logo)document.querySelector(".brand svg").outerHTML='<img src="'+IMG.logo+'" width="38" height="38" alt="" style="border-radius:50%;object-fit:cover">';
 if(IMG.whatsapp)document.getElementById("wafab").innerHTML='<img src="'+IMG.whatsapp+'" width="58" height="58" alt="" style="border-radius:50%">';
+
+document.querySelectorAll("#trips .card").forEach(function(card,i){var ids=["chemka","materuni","rau","day-hike"];card.style.cursor="pointer";card.addEventListener("click",function(){location.hash="detail-"+ids[i]})});
+document.querySelectorAll("#safari .card").forEach(function(card,i){var ids=["serengeti","ngorongoro","tarangire","mkomazi","maasai"];card.style.cursor="pointer";card.addEventListener("click",function(){location.hash="detail-"+ids[i]})});
+document.querySelectorAll("#luxury .pgrid .card").forEach(function(card){card.style.cursor="pointer";card.addEventListener("click",function(){location.hash="detail-luxury"})});
+
 var hd=document.querySelector("header"),tg=document.getElementById("tg");
 function menu(o){hd.classList.toggle("open",o);tg.setAttribute("aria-expanded",o);tg.setAttribute("aria-label",o?"Close menu":"Open menu")}
 tg.addEventListener("click",function(){menu(!hd.classList.contains("open"))});
@@ -383,7 +456,7 @@ var TL=[["trip-kilimanjaro","Mountain","Climb Kilimanjaro","5 to 10 days to Uhur
 ["trip-tarangire","Safari","Tarangire safari","Elephant herds and giant baobab trees.","#safari"],
 ["trip-mkomazi","Safari","Mkomazi safari","A quiet park close to Kilimanjaro.","#safari"],
 ["trip-maasai","Culture","Maasai culture tour","Visit a Maasai village and learn their customs.","#safari"]];
-TL.forEach(function(t){var a=document.createElement("a");a.className="tile"+(t[5]?" w":"");a.href=t[4];a.innerHTML=slot(t[0])+'<div class="ov"><div class="tg2">'+t[1]+'</div><h3>'+t[2]+'</h3><p>'+t[3]+'</p></div>';document.getElementById("tiles").appendChild(a)});
+TL.forEach(function(t){var a=document.createElement("a");a.className="tile"+(t[5]?" w":"");var slug=t[0].replace("trip-","");a.href="#detail-"+(slug==="kilimanjaro"?"kili-7":slug);a.innerHTML=slot(t[0])+'<div class="ov"><div class="tg2">'+t[1]+'</div><h3>'+t[2]+'</h3><p>'+t[3]+'</p></div>';document.getElementById("tiles").appendChild(a)});
 for(var gi=1;gi<=6;gi++)document.getElementById("strip").insertAdjacentHTML("beforeend",slot("gallery-"+gi));
 if(IMG.hero){var hr=document.querySelector(".hero");hr.classList.add("hasimg");hr.style.background="linear-gradient(180deg,#00000066,#00000022 55%,#00000099),url("+IMG.hero+") center 50%/cover"}
 var LS={solo:[["Tarangire Lodge","2 days / 1 night",1600,1850],["Ngorongoro Lodge","2 days / 1 night",2000,2400],["Lake Manyara Lodge","2 days / 1 night",1450,1600],["Serengeti Lodge","2 days / 1 night",1550,1750],["Serengeti Lodge","3 days / 2 nights",2350,2600],["Mkomazi hotel","2 days / 1 night",1150],["Northern Circuit lodge safari (Manyara 1, Serengeti 2, Ngorongoro 1)","5 days / 4 nights",5250]],
