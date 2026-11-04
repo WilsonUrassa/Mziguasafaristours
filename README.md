@@ -22,6 +22,7 @@ Then Settings > Domains to add your own domain. Every push to GitHub redeploys t
 
 ## 4. Use it
 - Website: your Vercel URL. Booking requests are saved in Supabase.
-- Admin: /admin.html  (bookings, status updates, visitor details, page views, devices, referrers).
-- Photos: put images in public/images and set them in public/index.html, e.g. IMG["route-lemosho"]="images/lemosho.jpg".
+- Admin: /admin.html. Tab "Bookings and visitors": every client booking with all details, status updates, CSV download, page views, devices, referrers. Tab "Pictures": upload, change or remove every picture on the website (banner, package photos, galleries, tour tiles, cards, logo).
+- More admins: Supabase > Authentication > Users > Add user. Every user you add can log in to /admin.html and see all bookings and change pictures, so only add people you trust.
+- Photos: upload them from the admin Pictures tab (no code needed). A photo set there replaces the default one on the site. The default banner is public/images/hero.jpg.
 - SEO: after launch, add the site to Google Search Console and submit /sitemap.xml. Replace www.mziguasafaritours.com with your real domain in index.html, robots.txt and sitemap.xml.

@@ -1,7 +1,7 @@
 (function () {
   var c = window.MZ || {};
   if (!c.url || !c.key || !window.supabase) return; /* not configured: booking form falls back to email */
-  var sb = supabase.createClient(c.url, c.key), sid;
+  var sb = supabase.createClient(c.url, c.key, { auth: { persistSession: false } }), sid;
   try { sid = sessionStorage.getItem("mz_sid"); if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem("mz_sid", sid); } } catch (e) { sid = null; }
   function hit() {
     sb.from("page_views").insert({
