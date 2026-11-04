@@ -372,7 +372,7 @@ var DETAIL={
 };
 var selectedDetailMode="group";
 function showDetail(id){
-var p=DETAIL[id];if(!p)return "";
+var isK=id.indexOf("kili-")===0,p=DETAIL[id]||{type:"Kilimanjaro climb",title:"Kilimanjaro package",duration:"5–10 days",desc:"Choose a route and package type for your Kilimanjaro climb.",itinerary:[],group:null,solo:null};if(!p)return "";
 var isK=id.indexOf("kili-")===0, tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
 var title=isK?"Kilimanjaro "+tier[0]+"-day package":p.title;
 var intro=isK?"Choose your preferred route from the options included in this "+tier[0]+"-day package.":p.desc;
@@ -385,7 +385,7 @@ var soloLabel=soloPrice==null?"Request solo quotation":money(soloPrice)+(isK?" p
 return '<section><div class="wrap"><a class="back" href="#top">← Back to packages</a><span class="eyebrow">'+p.type+'</span><h1 style="font-size:clamp(2rem,5vw,3rem)">'+title+'</h1><p style="max-width:65ch">'+intro+'</p><div class="facts"><span>'+p.duration+'</span><span>Solo or group booking</span><span>Customized arrangements available</span></div>'+routeSelect+'<div class="two" style="margin-top:24px"><div><h2>Itinerary</h2>'+(isK?'<p>Select a route above to see the available day-by-day climbing plan. Northern Circuit detailed camp schedules are confirmed with your climbing consultant.</p>':'<ol class="it">'+steps+'</ol>')+'<p class="note">Itinerary details may be adjusted for weather, park conditions, accommodation availability and your confirmed travel dates.</p></div><aside class="side card"><h2 style="font-size:1.35rem">Choose your package type</h2><div class="seg" role="group" aria-label="Choose solo or group"><button type="button" id="detailGroup" aria-pressed="true">Group (2+)</button><button type="button" id="detailSolo" aria-pressed="false">Solo</button></div><div class="price" id="detailPrice">'+groupLabel+'</div><p class="note" id="detailPriceNote">'+(groupPrice==null?"Final price depends on dates, group size and selected services.":(isK?"Group price per person for 2 or more climbers.":"Displayed starting price; final quote depends on party size and selected services."))+'</p><button class="btn" type="button" id="detailBook">Continue to booking</button><a class="btn wab" id="detailWhatsApp" target="_blank" rel="noopener" href="'+wa("Hello Mzigua Tours, I am interested in "+title+" ("+selectedDetailMode+"). Please send me the itinerary and quotation.")+'">Ask on WhatsApp</a></aside></div></div></section>';
 }
 function bindDetail(id){
-var p=DETAIL[id],isK=id.indexOf("kili-")===0,tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
+var isK=id.indexOf("kili-")===0,p=DETAIL[id]||{title:"Kilimanjaro package",solo:null},tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
 var groupPrice=isK?tier[2]:p.group,soloPrice=p.solo;
 function update(mode){
 selectedDetailMode=mode;
@@ -421,7 +421,7 @@ update("group");
 }
 
 function view(){var h=location.hash.slice(1),pv=document.getElementById("pkgview"),hm=document.getElementById("home"),m=/^pkg-([a-z]+)-(\d+)$/.exec(h),d=/^detail-(.+)$/.exec(h);
-if(d&&DETAIL[d[1]]){pv.innerHTML=showDetail(d[1]);hm.hidden=true;pv.hidden=false;document.title=(d[1].indexOf("kili-")===0?"Kilimanjaro package":DETAIL[d[1]].title)+" | Mzigua Tours & Safari";bindDetail(d[1]);window.scrollTo(0,0)}
+if(d&&(DETAIL[d[1]]||d[1].indexOf("kili-")===0)){pv.innerHTML=showDetail(d[1]);hm.hidden=true;pv.hidden=false;document.title=(d[1].indexOf("kili-")===0?"Kilimanjaro package":DETAIL[d[1]].title)+" | Mzigua Tours & Safari";bindDetail(d[1]);window.scrollTo(0,0)}
 else if(m&&D[m[1]]&&D[m[1]].p[m[2]]){pv.innerHTML=pkg(m[1],+m[2]);hm.hidden=true;pv.hidden=false;document.title=D[m[1]].n+" route "+m[2]+" days | Mzigua Tours & Safari";window.scrollTo(0,0)}
 else{pv.hidden=true;hm.hidden=false;var el=h&&document.getElementById(h);if(el)el.scrollIntoView();else window.scrollTo(0,0)}}
 document.querySelectorAll(".ph").forEach(function(e){var k="card-"+e.getAttribute("aria-label").toLowerCase().replace(/[^a-z]+/g,"-");e.textContent="";if(IMG[k])e.style.background="url("+IMG[k]+") center/cover";else e.textContent="Photo slot: "+k});
