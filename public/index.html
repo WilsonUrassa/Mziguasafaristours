@@ -28,7 +28,7 @@ a{color:inherit}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
 section{padding:64px 0}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:linear-gradient(90deg,#0d2a23,#12332b 60%,#1d4a3f);color:#fff;border-bottom:3px solid var(--sun)}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}.brand img{width:52px;height:52px;display:block;object-fit:contain;border-radius:0;background:#fff;flex:0 0 52px;padding:2px}.brand span{white-space:nowrap}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 1rem "Bricolage Grotesque",sans-serif}
 .mn{display:flex;align-items:center;gap:4px}
 .mn>a:not(.btn),.dd>a{display:block;padding:10px 14px;border-radius:999px;text-decoration:none;font-weight:500;font-size:.95rem;color:#fff;opacity:.92}
@@ -427,7 +427,7 @@ else if(m&&D[m[1]]&&D[m[1]].p[m[2]]){pv.innerHTML=pkg(m[1],+m[2]);hm.hidden=true
 else{pv.hidden=true;hm.hidden=false;var el=h&&document.getElementById(h);if(el)el.scrollIntoView();else window.scrollTo(0,0)}}
 document.querySelectorAll(".ph").forEach(function(e){var k="card-"+e.getAttribute("aria-label").toLowerCase().replace(/[^a-z]+/g,"-");e.textContent="";if(IMG[k])e.style.background="url("+IMG[k]+") center/cover";else e.textContent="Photo slot: "+k});
 var ic=document.createElement("link");ic.rel="icon";ic.href="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#e8a03a"/><path d="M6 50 24 22l8 12 6-8 20 24z" fill="#12332b"/></svg>');document.head.appendChild(ic);
-if(IMG.logo)document.querySelector(".brand svg").outerHTML='<img src="'+IMG.logo+'" width="38" height="38" alt="" style="border-radius:50%;object-fit:cover">';
+if(IMG.logo){var bl=document.querySelector(".brand svg");if(bl)bl.outerHTML='<img src="'+IMG.logo+'" width="52" height="52" alt="Mzigua Tours & Safari logo" style="width:52px;height:52px;display:block;object-fit:contain;border-radius:0;background:#fff;padding:2px">';}
 if(IMG.whatsapp)document.getElementById("wafab").innerHTML='<img src="'+IMG.whatsapp+'" width="58" height="58" alt="" style="border-radius:50%">';
 
 document.querySelectorAll("#trips .card").forEach(function(card,i){var ids=["chemka","materuni","rau","day-hike"];card.style.cursor="pointer";card.addEventListener("click",function(){location.hash="detail-"+ids[i]})});
