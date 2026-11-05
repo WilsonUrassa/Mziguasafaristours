@@ -15,7 +15,7 @@
     if (IMG.hero) { var h = document.querySelector(".hero"); h.classList.add("hasimg"); h.style.background = "linear-gradient(180deg,#00000066,#00000022 55%,#00000099),url(" + IMG.hero + ") center 50%/cover"; }
     if (IMG.logo) {
       var l = document.querySelector(".brand svg");
-      if (l) l.outerHTML = '<img src="' + IMG.logo + '" width="38" height="38" alt="Mzigua Tours & Safari logo" style="border-radius:50%;object-fit:cover">';
+      if (l) l.outerHTML = '<img src="' + IMG.logo + '" width="52" height="52" alt="Mzigua Tours & Safari logo" style="width:52px;height:52px;display:block;object-fit:contain;border-radius:0;background:#fff;padding:2px">';
     }
     if (IMG.whatsapp) document.getElementById("wafab").innerHTML = '<img src="' + IMG.whatsapp + '" width="58" height="58" alt="" style="border-radius:50%">';
   }
