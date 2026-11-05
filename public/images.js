@@ -13,9 +13,15 @@
       if (IMG[k]) { e.style.background = "url(" + IMG[k] + ") center/cover"; e.textContent = ""; }
     });
     if (IMG.hero) { var h = document.querySelector(".hero"); h.classList.add("hasimg"); h.style.background = "linear-gradient(180deg,#00000066,#00000022 55%,#00000099),url(" + IMG.hero + ") center 50%/cover"; }
-    if (IMG.logo) {
-      var l = document.querySelector(".brand svg");
-      if (l) l.outerHTML = '<img src="' + IMG.logo + '" width="52" height="52" alt="Mzigua Tours & Safari logo" style="width:52px;height:52px;display:block;object-fit:contain;border-radius:0;background:#fff;padding:2px">';
+    // The primary brand logo is a local public asset. Do not let a stale/broken
+    // Supabase site_images record replace it.
+    var brandLogo = document.querySelector(".brand img");
+    if (brandLogo) {
+      brandLogo.src = "/images/mzigua-logo.jpg?v=3";
+      brandLogo.onerror = function () {
+        this.onerror = null;
+        this.src = "/images/mzigua-logo.jpg";
+      };
     }
     if (IMG.whatsapp) document.getElementById("wafab").innerHTML = '<img src="' + IMG.whatsapp + '" width="58" height="58" alt="" style="border-radius:50%">';
   }
@@ -24,7 +30,7 @@
   var sb = supabase.createClient(c.url, c.key, { auth: { persistSession: false } });
   sb.from("site_images").select("slot,path").then(function (r) {
     if (r.error || !r.data) return;
-    r.data.forEach(function (x) { IMG[x.slot] = x.path; });
+    r.data.forEach(function (x) { if (x.slot !== "logo") IMG[x.slot] = x.path; });
     apply();
     if (/^#pkg-/.test(location.hash) && typeof view == "function") view();
   });
