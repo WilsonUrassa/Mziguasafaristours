@@ -1,10 +1,9 @@
 (function () {
   var c = window.MZ || {};
-  if (!c.url || !c.key || !window.supabase) return;
-  var sb = supabase.createClient(c.url, c.key, { auth: { persistSession: false } });
-  sb.from("site_images").select("slot,path").then(function (r) {
-    if (r.error || !r.data || !r.data.length) return;
-    r.data.forEach(function (x) { IMG[x.slot] = x.path; });
+  var fallbackLogo = "images/mzigua-logo.jpg";
+  if (!window.IMG) window.IMG = {};
+  if (!IMG.logo) IMG.logo = fallbackLogo;
+  function apply() {
     document.querySelectorAll(".im[aria-label]").forEach(function (e) {
       var u = IMG[e.getAttribute("aria-label")];
       if (u) { e.style.backgroundImage = "url(" + u + ")"; var sp = e.querySelector("span"); if (sp) sp.remove(); }
@@ -14,8 +13,19 @@
       if (IMG[k]) { e.style.background = "url(" + IMG[k] + ") center/cover"; e.textContent = ""; }
     });
     if (IMG.hero) { var h = document.querySelector(".hero"); h.classList.add("hasimg"); h.style.background = "linear-gradient(180deg,#00000066,#00000022 55%,#00000099),url(" + IMG.hero + ") center 50%/cover"; }
-    if (IMG.logo) { var l = document.querySelector(".brand svg"); if (l) l.outerHTML = '<img src="' + IMG.logo + '" width="38" height="38" alt="" style="border-radius:50%;object-fit:cover">'; }
+    if (IMG.logo) {
+      var l = document.querySelector(".brand svg");
+      if (l) l.outerHTML = '<img src="' + IMG.logo + '" width="38" height="38" alt="Mzigua Tours & Safari logo" style="border-radius:50%;object-fit:cover">';
+    }
     if (IMG.whatsapp) document.getElementById("wafab").innerHTML = '<img src="' + IMG.whatsapp + '" width="58" height="58" alt="" style="border-radius:50%">';
+  }
+  apply();
+  if (!c.url || !c.key || !window.supabase) return;
+  var sb = supabase.createClient(c.url, c.key, { auth: { persistSession: false } });
+  sb.from("site_images").select("slot,path").then(function (r) {
+    if (r.error || !r.data) return;
+    r.data.forEach(function (x) { IMG[x.slot] = x.path; });
+    apply();
     if (/^#pkg-/.test(location.hash) && typeof view == "function") view();
   });
 })();
