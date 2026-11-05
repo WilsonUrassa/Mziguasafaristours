@@ -132,7 +132,7 @@ footer a{color:var(--sun)}
 <body>
 <header><div class="wrap">
 <a class="brand" href="#top" aria-label="Mzigua Tours & Safari home">
-<svg width="38" height="38" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#e8a03a"/><path d="M6 50 24 22l8 12 6-8 20 24z" fill="#12332b"/><path d="m24 22 5 8-5-2-4 4z" fill="#fff"/><circle cx="46" cy="16" r="5" fill="#fff"/></svg>
+<img src="/images/mzigua-logo.jpg?v=4" width="58" height="58" alt="Mzigua Safari logo" style="width:58px;height:58px;display:block;object-fit:contain;border-radius:0;background:#fff">
 <span>MZIGUA TOURS &amp; SAFARI</span></a>
 <button class="tg" id="tg" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><i></i></button>
 <nav class="mn" id="menu" aria-label="Main">
@@ -172,7 +172,7 @@ footer a{color:var(--sun)}
 <h2>Mount Kilimanjaro packages</h2>
 <p>Six group packages for 2 or more climbers. Prices are per person in US dollars and depend on the number of days and selected route.</p>
 <div class="grid" id="pk"></div><details style="margin-top:22px"><summary>Compare all prices in a table</summary><div class="tbl" style="margin-top:12px"><table id="rt"><thead><tr><th>Route</th><th>Days</th><th>Price / person</th><th>Notes</th></tr></thead><tbody></tbody></table></div></details>
-<p class="note">The prices shown are group rates for 2 or more people. Ask us for a quotation if you need a private or solo climb.</p>
+<p class="note">The prices shown are solo prices per person. Choose a group size on the itinerary page to calculate the total group price.</p>
 </div></section>
 
 <section class="band"><div class="wrap">
@@ -319,7 +319,7 @@ footer a{color:var(--sun)}
 </div></footer>
 
 <script>
-var R=[["Umbwe",5,1700,"Group rate (2+)"],["Rongai",5,1700,"Group rate (2+)"],["Marangu",5,1700,"Group rate (2+)"],["Umbwe",6,1950,"Group rate (2+)"],["Rongai",6,1950,"Group rate (2+)"],["Machame",6,1950,"Group rate (2+)"],["Marangu",6,1950,"Group rate (2+)"],["Machame",7,2250,"Group rate (2+)"],["Lemosho",7,2250,"Group rate (2+)"],["Rongai",7,2250,"Group rate (2+)"],["Umbwe",7,2250,"Group rate (2+)"],["Lemosho",8,2550,"Group rate (2+)"],["Northern Circuit",8,2550,"Standard route · group rate (2+)"],["Northern Circuit",9,2850,"Group rate (2+)"],["Lemosho",9,2850,"Group rate (2+)"],["Lemosho",10,3250,"Group rate (2+)"],["Northern Circuit",10,3250,"Group rate (2+)"]];
+var R=[["Umbwe",5,1700,"Solo price"],["Rongai",5,1700,"Solo price"],["Marangu",5,1700,"Solo price"],["Umbwe",6,1950,"Solo price"],["Rongai",6,1950,"Solo price"],["Machame",6,1950,"Solo price"],["Marangu",6,1950,"Solo price"],["Machame",7,2250,"Solo price"],["Lemosho",7,2250,"Solo price"],["Rongai",7,2250,"Solo price"],["Umbwe",7,2250,"Solo price"],["Lemosho",8,2550,"Solo price"],["Northern Circuit",8,2550,"Standard route · solo price"],["Northern Circuit",9,2850,"Solo price"],["Lemosho",9,2850,"Solo price"],["Lemosho",10,3250,"Solo price"],["Northern Circuit",10,3250,"Solo price"]];
 var G=[[5,"Umbwe / Rongai / Marangu",1700],[6,"Umbwe / Rongai / Machame / Marangu",1950],[7,"Machame / Lemosho / Rongai / Umbwe",2250],[8,"Lemosho / Northern Circuit (standard)",2550],[9,"Northern Circuit / Lemosho",2850],[10,"Lemosho / Northern Circuit",3250]];
 var tb=document.querySelector("#rt tbody"),opts="";
 R.forEach(function(r){var tr=document.createElement("tr");
@@ -347,7 +347,7 @@ function slot(k,c){var s=IMG[k];return '<div class="im '+(c||'')+'" role="img" a
 function money(n){return "$"+n.toLocaleString("en-US")}
 var pk=document.getElementById("pk");
 G.forEach(function(g){var a=document.createElement("a");a.className="pc";a.href="#detail-kili-"+g[0];
-a.innerHTML='<div class="b"><h3>'+g[0]+' days · Kilimanjaro climb</h3><p><strong>Routes:</strong> '+g[1]+'</p><div class="price">'+money(g[2])+' <small style="font:400 .8rem Instrument Sans,sans-serif">per person</small></div><p class="note">Group price for 2 or more climbers · Solo option available</p><span class="go">View itinerary &amp; choose package</span></div>';pk.appendChild(a)});
+a.innerHTML='<div class="b"><h3>'+g[0]+' days · Kilimanjaro climb</h3><p><strong>Routes:</strong> '+g[1]+'</p><div class="price">'+money(g[2])+' <small style="font:400 .8rem Instrument Sans,sans-serif">per person</small></div><p class="note">Solo price per person · group total calculated below</p><span class="go">View itinerary &amp; choose package</span></div>';pk.appendChild(a)});
 function pickPackage(days){["ps","v2"].forEach(function(id){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++)if(sel.options[i].text.indexOf(days+" days – ")===0){sel.selectedIndex=i;break}})}
 function pkg(k,n){var o=D[k],r=R.filter(function(x){return x[0].toLowerCase()==k&&x[1]==n})[0],h="",i=0;
 o.p[n].split(",").forEach(function(c){var t=c=="S"?(o.S||SD):c=="E"?(o.E||ED):o.s[c],q=t.split("|");i++;h+='<li><div class="dn">Day '+i+'</div><h3>'+q[0]+'</h3><p>'+q.slice(1).join(" · ")+'</p></li>'});
@@ -373,37 +373,41 @@ var DETAIL={
 };
 var selectedDetailMode="group";
 function showDetail(id){
-var isK=id.indexOf("kili-")===0,p=DETAIL[id]||{type:"Kilimanjaro climb",title:"Kilimanjaro package",duration:"5–10 days",desc:"Choose a route and package type for your Kilimanjaro climb.",itinerary:[],group:null,solo:null};if(!p)return "";
-var isK=id.indexOf("kili-")===0, tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
+var isK=id.indexOf("kili-")===0,p=DETAIL[id]||{type:"Kilimanjaro climb",title:"Kilimanjaro package",duration:"5–10 days",desc:"Choose a route and package type for your Kilimanjaro climb.",itinerary:[],group:null,solo:null};
+var tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
 var title=isK?"Kilimanjaro "+tier[0]+"-day package":p.title;
 var intro=isK?"Choose your preferred route from the options included in this "+tier[0]+"-day package.":p.desc;
-var groupPrice=isK?tier[2]:p.group,soloPrice=p.solo;
+var basePrice=isK?tier[2]:(p.solo!=null?p.solo:p.group);
 var routes=isK?tier[1].split(" / "):[];
 var routeSelect=isK?'<label style="max-width:420px">Choose your route<select id="detailRoute">'+routes.map(function(r){return '<option value="'+r.toLowerCase().replace(/ /g,"-")+'">'+r+'</option>'}).join("")+'</select></label><div id="detailMountainItinerary" style="margin-top:16px"></div>':'';
 var steps=p.itinerary.map(function(x,i){return '<li><div class="dn">'+(isK?"Itinerary information":("Step "+(i+1)))+'</div><h3>'+x+'</h3></li>'}).join("");
-var groupLabel=groupPrice==null?"Request group quotation":money(groupPrice)+(isK?" per person":" starting price");
-var soloLabel=soloPrice==null?"Request solo quotation":money(soloPrice)+(isK?" per person":"");
-return '<section><div class="wrap"><a class="back" href="#top">← Back to packages</a><span class="eyebrow">'+p.type+'</span><h1 style="font-size:clamp(2rem,5vw,3rem)">'+title+'</h1><p style="max-width:65ch">'+intro+'</p><div class="facts"><span>'+p.duration+'</span><span>Solo or group booking</span><span>Customized arrangements available</span></div>'+routeSelect+'<div class="two" style="margin-top:24px"><div><h2>Itinerary</h2>'+(isK?'<p>Select a route above to see the available day-by-day climbing plan. Northern Circuit detailed camp schedules are confirmed with your climbing consultant.</p>':'<ol class="it">'+steps+'</ol>')+'<p class="note">Itinerary details may be adjusted for weather, park conditions, accommodation availability and your confirmed travel dates.</p></div><aside class="side card"><h2 style="font-size:1.35rem">Choose your package type</h2><div class="seg" role="group" aria-label="Choose solo or group"><button type="button" id="detailGroup" aria-pressed="true">Group (2+)</button><button type="button" id="detailSolo" aria-pressed="false">Solo</button></div><div class="price" id="detailPrice">'+groupLabel+'</div><p class="note" id="detailPriceNote">'+(groupPrice==null?"Final price depends on dates, group size and selected services.":(isK?"Group price per person for 2 or more climbers.":"Displayed starting price; final quote depends on party size and selected services."))+'</p><button class="btn" type="button" id="detailBook">Continue to booking</button><a class="btn wab" id="detailWhatsApp" target="_blank" rel="noopener" href="'+wa("Hello Mzigua Tours, I am interested in "+title+" ("+selectedDetailMode+"). Please send me the itinerary and quotation.")+'">Ask on WhatsApp</a></aside></div></div></section>';
-}
-function bindDetail(id){
-var isK=id.indexOf("kili-")===0,p=DETAIL[id]||{title:"Kilimanjaro package",solo:null},tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
-var groupPrice=isK?tier[2]:p.group,soloPrice=p.solo;
-function update(mode){
-selectedDetailMode=mode;
-var price=mode==="group"?groupPrice:soloPrice;
+var priceLabel=basePrice==null?"Request quotation":money(basePrice)+" per person";
+var priceNote=basePrice==null?"Final price depends on dates, number of travellers and selected services.":"Solo price per person. Group total is calculated from the same per-person price and the number of travellers.";
+return '<section><div class="wrap"><a class="back" href="#top">← Back to packages</a><span class="eyebrow">'+p.type+'</span><h1 style="font-size:clamp(2rem,5vw,3rem)">'+title+'</h1><p style="max-width:65ch">'+intro+'</p><div class="facts"><span>'+p.duration+'</span><span>Solo or group booking</span><span>Customized arrangements available</span></div>'+routeSelect+'<div class="two" style="margin-top:24px"><div><h2>Itinerary</h2>'+(isK?'<p>Select a route above to see the available day-by-day climbing plan.</p>':'<ol class="it">'+steps+'</ol>')+'<p class="note">Itinerary details may be adjusted for weather, park conditions, accommodation availability and your confirmed travel dates.</p></div><aside class="side card"><h2 style="font-size:1.35rem">Choose your package type</h2><div class="seg" role="group" aria-label="Choose solo or group"><button type="button" id="detailGroup" aria-pressed="false">Group</button><button type="button" id="detailSolo" aria-pressed="true">Solo</button></div><label id="groupSizeWrap" style="display:none">Number of travellers<input id="groupSize" type="number" min="2" step="1" value="2"></label><div class="price" id="detailPrice">'+priceLabel+'</div><p class="note" id="detailPriceNote">'+priceNote+'</p><button class="btn" type="button" id="detailBook">Continue to booking</button><a class="btn wab" id="detailWhatsApp" target="_blank" rel="noopener" href="#">Ask on WhatsApp</a></aside></div></div></section>';
+}function bindDetail(id){
+var isK=id.indexOf("kili-")===0,p=DETAIL[id]||{title:"Kilimanjaro package",solo:null,group:null},tier=isK?G.filter(function(x){return x[0]===Number(id.split("-")[1])})[0]:null;
+var basePrice=isK?tier[2]:(p.solo!=null?p.solo:p.group);
+var mode="solo";
+function update(nextMode){
+mode=nextMode;
+var size=2,wrap=document.getElementById("groupSizeWrap");
+if(mode==="group"){size=Math.max(2,parseInt(document.getElementById("groupSize").value||2,10));document.getElementById("groupSize").value=size;wrap.style.display="grid"}else{wrap.style.display="none";size=1}
 document.getElementById("detailGroup").setAttribute("aria-pressed",mode==="group");
 document.getElementById("detailSolo").setAttribute("aria-pressed",mode==="solo");
-document.getElementById("detailPrice").textContent=price==null?"Request a "+mode+" quotation":money(price)+(isK||mode==="solo"?" per person":" starting price");
-document.getElementById("detailPriceNote").textContent=price==null?"We will confirm the price based on your dates, number of travellers and selected services.":(isK&&mode==="group"?"Group price per person for 2 or more climbers.":"Price shown is indicative; confirm the final quotation with our team.");
-document.getElementById("detailWhatsApp").href=wa("Hello Mzigua Tours, I am interested in "+(isK?"Kilimanjaro "+tier[0]+"-day package":p.title)+". I prefer a "+mode+" package. Please send me the full itinerary and quotation.");
+var total=basePrice==null?null:basePrice*size;
+document.getElementById("detailPrice").textContent=total==null?"Request a "+mode+" quotation":(mode==="solo"?money(basePrice)+" per person":money(total)+" total for "+size+" travellers");
+document.getElementById("detailPriceNote").textContent=total==null?"We will confirm the price based on your dates, number of travellers and selected services.":(mode==="solo"?"Solo price per person.":"Group calculation: "+money(basePrice)+" × "+size+" travellers = "+money(total)+" total.");
+var title=isK?"Kilimanjaro "+tier[0]+"-day package":p.title;
+document.getElementById("detailWhatsApp").href=wa("Hello Mzigua Tours, I am interested in "+title+". I prefer a "+mode+" package"+(mode==="group"?" for "+size+" travellers":"")+" . Please send me the full itinerary and quotation.");
 }
 document.getElementById("detailGroup").onclick=function(){update("group")};
 document.getElementById("detailSolo").onclick=function(){update("solo")};
+document.getElementById("groupSize").addEventListener("input",function(){if(mode==="group")update("group")});
 document.getElementById("detailBook").onclick=function(){
-var sel=document.getElementById("ps"),label=(isK?"Kilimanjaro "+tier[0]+" days – "+tier[1]:p.title)+" ("+selectedDetailMode+" package)";
+var sel=document.getElementById("ps"),label=(isK?"Kilimanjaro "+tier[0]+" days – "+tier[1]:p.title)+" ("+mode+" package)";
 var opt=document.createElement("option");opt.textContent=label;opt.value=label;sel.appendChild(opt);sel.value=label;
-document.querySelector('#bf input[name="g"]').value=selectedDetailMode==="solo"?1:2;
-document.querySelector('#bf textarea[name="m"]').value="Package type: "+selectedDetailMode+". Please confirm itinerary, availability and final price.";
+document.querySelector('#bf input[name="g"]').value=mode==="solo"?1:Math.max(2,parseInt(document.getElementById("groupSize").value||2,10));
+document.querySelector('#bf textarea[name="m"]').value="Package type: "+mode+"."+(mode==="group"?" Number of travellers: "+document.querySelector('#bf input[name="g"]').value+".":"")+" Please confirm itinerary, availability and final price.";
 location.hash="book";document.getElementById("home").hidden=false;document.getElementById("pkgview").hidden=true;setTimeout(function(){document.getElementById("book").scrollIntoView({behavior:"smooth"})},0);
 };
 if(isK){
@@ -418,9 +422,8 @@ target.innerHTML='<ol class="it">'+html+'</ol>';
 }
 route.addEventListener("change",renderRoute);renderRoute();
 }
-update("group");
+update("solo");
 }
-
 function view(){var h=location.hash.slice(1),pv=document.getElementById("pkgview"),hm=document.getElementById("home"),m=/^pkg-([a-z]+)-(\d+)$/.exec(h),d=/^detail-(.+)$/.exec(h);
 if(d&&(DETAIL[d[1]]||d[1].indexOf("kili-")===0)){pv.innerHTML=showDetail(d[1]);hm.hidden=true;pv.hidden=false;document.title=(d[1].indexOf("kili-")===0?"Kilimanjaro package":DETAIL[d[1]].title)+" | Mzigua Tours & Safari";bindDetail(d[1]);window.scrollTo(0,0)}
 else if(m&&D[m[1]]&&D[m[1]].p[m[2]]){pv.innerHTML=pkg(m[1],+m[2]);hm.hidden=true;pv.hidden=false;document.title=D[m[1]].n+" route "+m[2]+" days | Mzigua Tours & Safari";window.scrollTo(0,0)}
