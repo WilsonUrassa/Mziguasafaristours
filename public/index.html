@@ -347,7 +347,7 @@ function slot(k,c){var s=IMG[k];return '<div class="im '+(c||'')+'" role="img" a
 function money(n){return "$"+n.toLocaleString("en-US")}
 var pk=document.getElementById("pk");
 G.forEach(function(g){var a=document.createElement("a");a.className="pc";a.href="#detail-kili-"+g[0];
-a.innerHTML='<div class="b"><h3>'+g[0]+' days · Kilimanjaro climb</h3><p><strong>Routes:</strong> '+g[1]+'</p><div class="price">'+money(g[2])+' <small style="font:400 .8rem Instrument Sans,sans-serif">per person</small></div><p class="note">Solo price per person · group total calculated below</p><span class="go">View itinerary &amp; choose package</span></div>';pk.appendChild(a)});
+a.innerHTML=(g[0]===7?slot("card-machame","big"):"")+'<div class="b"><h3>'+g[0]+' days · Kilimanjaro climb</h3><p><strong>Routes:</strong> '+g[1]+'</p><div class="price">'+money(g[2])+' <small style="font:400 .8rem Instrument Sans,sans-serif">per person</small></div><p class="note">Solo price per person · group total calculated below</p><span class="go">View itinerary &amp; choose package</span></div>';pk.appendChild(a)});
 function pickPackage(days){["ps","v2"].forEach(function(id){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++)if(sel.options[i].text.indexOf(days+" days – ")===0){sel.selectedIndex=i;break}})}
 function pkg(k,n){var o=D[k],r=R.filter(function(x){return x[0].toLowerCase()==k&&x[1]==n})[0],h="",i=0;
 o.p[n].split(",").forEach(function(c){var t=c=="S"?(o.S||SD):c=="E"?(o.E||ED):o.s[c],q=t.split("|");i++;h+='<li><div class="dn">Day '+i+'</div><h3>'+q[0]+'</h3><p>'+q.slice(1).join(" · ")+'</p></li>'});
