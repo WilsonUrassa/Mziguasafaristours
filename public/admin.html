@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Admin | Mzigua Tours &amp; Safari</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#f4f7f5;color:#1c2422}
+header{background:#12332b;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:3px solid #e8a03a}
+main{max-width:1100px;margin:0 auto;padding:20px}.box{max-width:360px;margin:12vh auto;background:#fff;padding:28px;border-radius:14px;border:1px solid #d5ddd8}
+label{display:grid;gap:4px;margin:12px 0;font-weight:600}input,select{font:inherit;padding:10px;border:1px solid #cbd5d0;border-radius:8px;width:100%}
+button{background:#e8a03a;border:0;border-radius:999px;padding:9px 18px;cursor:pointer;font:inherit;font-weight:600;color:#1b1405}
+button.g2{background:#fff;border:1px solid #cbd5d0;color:#1c2422}button.tab{background:#ffffff22;color:#fff}button.tab[aria-pressed=true]{background:#e8a03a;color:#1b1405}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.c{background:#fff;border:1px solid #d5ddd8;border-radius:12px;padding:14px}.c b{display:block;font-size:1.7rem;color:#1d4a3f}
+.t{overflow-x:auto;background:#fff;border:1px solid #d5ddd8;border-radius:12px;margin-bottom:20px}
+table{border-collapse:collapse;width:100%;min-width:520px}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #e3e9e5;vertical-align:top}th{background:#12332b;color:#fff}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}h2{margin:22px 0 8px}#err{color:#b00020}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:10px}
+.pc{background:#fff;border:1px solid #d5ddd8;border-radius:12px;overflow:hidden;display:grid}
+.th{height:130px;background:#dfe7e3 center/cover;display:grid;place-items:center;color:#58655f;font-size:.8rem}
+.pc .b{padding:10px 12px;display:grid;gap:6px}.pc small{color:#58655f;word-break:break-all}.pc .r{display:flex;gap:6px;flex-wrap:wrap}.pc button{padding:6px 12px;font-size:.85rem}
+.ok{color:#1d6b3a}.bad{color:#b00020}
+</style></head><body>
+<div id="login" class="box"><h1>Admin login</h1>
+<form id="lf"><label>Email<input id="em" type="email" required autocomplete="username"></label>
+<label>Password<input id="pw" type="password" required autocomplete="current-password"></label>
+<button>Sign in</button><p id="err" role="alert"></p></form></div>
+<div id="app" hidden>
+<header><strong>MZIGUA TOURS &amp; SAFARI · Admin</strong>
+<span><button class="tab" id="t1" aria-pressed="true">Bookings and visitors</button> <button class="tab" id="t2" aria-pressed="false">Pictures</button> <button class="tab" id="rf">Refresh</button> <button class="tab" id="out">Sign out</button></span></header>
+<main>
+<div id="p1"><div class="cards" id="st"></div>
+<h2>Client bookings <button class="g2" id="csv" style="margin-left:10px">Download CSV</button></h2><div class="t" id="bk"></div>
+<div class="g"><div><h2>Top pages (30 days)</h2><div class="t" id="tp"></div></div>
+<div><h2>Devices</h2><div class="t" id="dv"></div></div>
+<div><h2>Where visitors come from</h2><div class="t" id="rr"></div></div></div>
+<h2>Recent visitors</h2><div class="t" id="rv"></div></div>
+<div id="p2" hidden><h2 style="margin-top:0">Website pictures</h2>
+<p>Press <b>Upload / change</b> on any picture. Large photos are resized automatically. Changes appear on the website straight away (refresh the site to see them).</p>
+<div id="pics"></div></div>
+</main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+if(!MZ.url||!MZ.key){$("err").textContent="Add your Supabase URL and key in config.js first."}
+var sb=window.supabase&&MZ.url?supabase.createClient(MZ.url,MZ.key):null,BK=[];
+function el(t,x,c){var e=document.createElement(t);if(x!=null)e.textContent=x;if(c)e.className=c;return e}
+function tbl(box,heads,rows){box.textContent="";var t=el("table"),h=el("tr");heads.forEach(function(x){h.appendChild(el("th",x))});t.appendChild(h);
+rows.forEach(function(r){var tr=el("tr");r.forEach(function(c){var td=el("td");if(c&&c.nodeType)td.appendChild(c);else td.textContent=c==null?"":c;tr.appendChild(td)});t.appendChild(tr)});
+if(!rows.length){var tr=el("tr"),td=el("td","No data yet");td.colSpan=heads.length;tr.appendChild(td);t.appendChild(tr)}box.appendChild(t)}
+function top(a,f,n){var m={};a.forEach(function(x){var k=f(x)||"(direct)";m[k]=(m[k]||0)+1});return Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(x,y){return y[1]-x[1]}).slice(0,n)}
+function fmt(d){return new Date(d).toLocaleString()}
+function show(on){$("login").hidden=on;$("app").hidden=!on;if(on)load()}
+function tab(n){$("p1").hidden=n!=1;$("p2").hidden=n!=2;$("t1").setAttribute("aria-pressed",n==1);$("t2").setAttribute("aria-pressed",n==2)}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
+if(sb)sb.auth.getSession().then(function(r){show(!!r.data.session)});
+$("lf").onsubmit=function(e){e.preventDefault();if(!sb)return;sb.auth.signInWithPassword({email:$("em").value,password:$("pw").value}).then(function(r){if(r.error)$("err").textContent=r.error.message;else show(true)})};
+$("out").onclick=function(){sb.auth.signOut().then(function(){show(false)})};$("rf").onclick=function(){load()};
+$("csv").onclick=function(){var q=function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'},H=["created_at","name","email","package","start_date","people","message","status"];
+var t=[H.join(",")].concat(BK.map(function(b){return H.map(function(k){return q(b[k])}).join(",")})).join("\n");
+var a=el("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download="mzigua-bookings.csv";a.click()};
+function load(){
+var since=new Date(Date.now()-30*864e5).toISOString();
+Promise.all([sb.from("bookings").select("*").order("created_at",{ascending:false}).limit(1000),
+sb.from("page_views").select("path,device,referrer,language,session_id,created_at").gte("created_at",since).order("created_at",{ascending:false}).limit(5000)]).then(function(r){
+var b=BK=r[0].data||[],v=r[1].data||[],w=Date.now()-7*864e5;
+var v7=v.filter(function(x){return new Date(x.created_at)>w}),u={};v.forEach(function(x){if(x.session_id)u[x.session_id]=1});
+$("st").textContent="";[["Bookings",b.length],["New bookings",b.filter(function(x){return x.status=="new"}).length],["Page views (7 days)",v7.length],["Page views (30 days)",v.length],["Visitors (30 days)",Object.keys(u).length]].forEach(function(c){var d=el("div");d.className="c";d.appendChild(el("b",c[1]));d.appendChild(el("span",c[0]));$("st").appendChild(d)});
+tbl($("bk"),["Received","Name","Email","Package","Start","People","Message","Status"],b.map(function(x){var s=el("select");["new","contacted","confirmed","cancelled"].forEach(function(o){var op=el("option",o);if(o==x.status)op.selected=true;s.appendChild(op)});
+s.onchange=function(){sb.from("bookings").update({status:s.value}).eq("id",x.id).then(function(r){if(r.error)alert(r.error.message)})};
+return [fmt(x.created_at),x.name,x.email,x.package,x.start_date,x.people,x.message,s]}));
+tbl($("tp"),["Page","Views"],top(v,function(x){return x.path},10));
+tbl($("dv"),["Device","Views"],top(v,function(x){return x.device},5));
+tbl($("rr"),["Referrer","Views"],top(v,function(x){try{return x.referrer?new URL(x.referrer).hostname:""}catch(e){return ""}},10));
+tbl($("rv"),["Time","Page","Device","Language","Referrer"],v.slice(0,50).map(function(x){return [fmt(x.created_at),x.path,x.device,x.language,x.referrer]}))});
+loadPics()}
+/* ---------- pictures ---------- */
+var R5=["lemosho","machame","umbwe","rongai","marangu"],cap=function(s){return s[0].toUpperCase()+s.slice(1)};
+var GROUPS=[["Home page banner",[["hero","Banner photo at the top of the home page"]]],
+["Route photos: package cards and the top of each package page",R5.map(function(r){return ["route-"+r,cap(r)+" route"]})],
+["Route galleries: 3 photos on each package page",[].concat.apply([],R5.map(function(r){return [1,2,3].map(function(n){return ["route-"+r+"-"+n,cap(r)+" gallery "+n]})}))],
+["Home page tour tiles",[["trip-kilimanjaro","Climb Kilimanjaro"],["trip-meru","Mount Meru"],["trip-materuni","Materuni waterfall"],["trip-chemka","Chemka hot springs"],["trip-rau","Rau forest reserve"],["trip-day-hike","Kilimanjaro day hike"],["trip-coffee","Coffee farm tour"],["trip-langoni","Langoni day trip"],["trip-elephant-forest","Msitu wa Tembo"],["trip-serengeti","Serengeti safari"],["trip-ngorongoro","Ngorongoro safari"],["trip-tarangire","Tarangire safari"],["trip-mkomazi","Mkomazi safari"],["trip-maasai","Maasai culture tour"]]],
+["Individual package photos (optional: replaces the route photo for one package only)",[].concat.apply([],[["lemosho",[6,7,8,9,10]],["machame",[6,7]],["umbwe",[5,6,7]],["rongai",[5,6,7]],["marangu",[5,6,7]]].map(function(r){return r[1].map(function(n){return ["pkg-"+r[0]+"-"+n,cap(r[0])+" "+n+" days"]})}))],
+["Home page photo strip",[1,2,3,4,5,6].map(function(n){return ["gallery-"+n,"Strip photo "+n]})],
+["Day trip and safari cards",[["card-hot-springs","Chemka hot springs card"],["card-waterfall","Materuni waterfall card"],["card-forest","Rau forest card"],["card-mountain","Kilimanjaro day hike card"],["card-serengeti","Serengeti card"],["card-ngorongoro","Ngorongoro card"],["card-tarangire","Tarangire card"],["card-mkomazi","Mkomazi card"],["card-maasai-culture","Maasai culture card"]]],
+["Logo and WhatsApp button",[["logo","Company logo"],["whatsapp","WhatsApp button image"]]]];
+var DUR={lemosho:[6,7,8,9,10],machame:[6,7],umbwe:[5,6,7],rongai:[5,6,7],marangu:[5,6,7]};
+R5.forEach(function(r,i){var rows=[];DUR[r].forEach(function(d){var k="pkg-"+r+"-"+d,L=cap(r)+" "+d+" days";rows.push([k,L+": main photo (card and top of page)"]);[1,2,3].forEach(function(n){rows.push([k+"-"+n,L+": gallery "+n])})});GROUPS.splice(1+i,0,[cap(r)+" packages (each package has its own photos)",rows])});
+var IM={},DEF={hero:"images/hero.jpg","pkg-lemosho-7":"images/lemosho-skull.jpg","pkg-lemosho-7-1":"images/lemosho-sign.jpg","pkg-lemosho-7-2":"images/lemosho-tents.jpg","pkg-lemosho-7-3":"images/lemosho-forest.jpg"};
+function loadPics(){sb.from("site_images").select("*").then(function(r){IM={};(r.data||[]).forEach(function(x){IM[x.slot]=x});draw()})}
+function draw(){var box=$("pics");box.textContent="";
+GROUPS.forEach(function(g){box.appendChild(el("h2",g[0]));var grid=el("div",null,"pg");
+g[1].forEach(function(s){var k=s[0],cur=IM[k]?IM[k].path:DEF[k],c=el("div",null,"pc"),th=el("div",null,"th"),b=el("div",null,"b");
+if(cur)th.style.backgroundImage="url("+cur+")";else th.textContent="No picture yet";
+b.appendChild(el("strong",s[1]));b.appendChild(el("small",k));
+var st=el("small","");var row=el("div",null,"r"),f=el("input");f.type="file";f.accept="image/*";f.hidden=true;
+var up=el("button","Upload / change");up.onclick=function(){f.click()};
+f.onchange=function(){if(f.files[0])upload(k,f.files[0],th,st)};row.appendChild(up);row.appendChild(f);
+if(IM[k]){var rm=el("button","Remove","g2");rm.onclick=function(){if(confirm("Remove this picture?"))remove(k,st)};row.appendChild(rm)}
+b.appendChild(row);b.appendChild(st);c.appendChild(th);c.appendChild(b);grid.appendChild(c)});box.appendChild(grid)})}
+function shrink(file){return createImageBitmap(file).then(function(bm){var m=Math.min(1,1920/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=Math.round(bm.width*m);c.height=Math.round(bm.height*m);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);return new Promise(function(r){c.toBlob(r,"image/jpeg",.85)})})}
+function msg(st,t,ok){st.textContent=t;st.className=ok?"ok":"bad"}
+function upload(k,file,th,st){msg(st,"Uploading...",true);var name=k+"-"+Date.now()+".jpg",old=IM[k]&&IM[k].object;
+shrink(file).then(function(blob){return sb.storage.from("site-images").upload(name,blob,{contentType:"image/jpeg",cacheControl:"31536000"})}).then(function(u){
+if(u.error)throw u.error;var url=sb.storage.from("site-images").getPublicUrl(name).data.publicUrl;
+return sb.from("site_images").upsert({slot:k,path:url,object:name,updated_at:new Date().toISOString()}).then(function(w){if(w.error)throw w.error;
+if(old)sb.storage.from("site-images").remove([old]);IM[k]={slot:k,path:url,object:name};th.textContent="";th.style.backgroundImage="url("+url+")";msg(st,"Saved. Live on the website.",true);setTimeout(draw,1200)})}).catch(function(e){msg(st,"Failed: "+(e.message||e),false)})}
+function remove(k,st){var o=IM[k]&&IM[k].object;sb.from("site_images").delete().eq("slot",k).then(function(r){if(r.error)return msg(st,r.error.message,false);if(o)sb.storage.from("site-images").remove([o]);delete IM[k];draw()})}
+</script></body></html>

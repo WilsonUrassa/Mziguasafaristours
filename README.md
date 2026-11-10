@@ -1,0 +1,28 @@
+# Mzigua Tours & Safari
+
+Static website (Vercel) + bookings, visitor stats and admin login (Supabase) + code on GitHub.
+
+## 1. GitHub
+Create an empty repo on github.com, then in this folder:
+    git init && git add . && git commit -m "Mzigua Tours website"
+    git branch -M main
+    git remote add origin https://github.com/YOUR-USER/mzigua-tours.git
+    git push -u origin main
+
+## 2. Supabase
+1. Create a project at supabase.com.
+2. SQL Editor > paste supabase/schema.sql > Run.
+3. Authentication > Providers > Email: turn OFF "Allow new users to sign up" (so only you can log in).
+4. Authentication > Users > Add user: your admin email and a strong password.
+5. Project Settings > API: copy the Project URL and the anon public key into public/config.js. Commit and push.
+
+## 3. Vercel
+vercel.com > Add New > Project > import the GitHub repo. Framework preset "Other". Deploy.
+Then Settings > Domains to add your own domain. Every push to GitHub redeploys the site.
+
+## 4. Use it
+- Website: your Vercel URL. Booking requests are saved in Supabase.
+- Admin: /admin.html. Tab "Bookings and visitors": every client booking with all details, status updates, CSV download, page views, devices, referrers. Tab "Pictures": upload, change or remove every picture on the website (banner, package photos, galleries, tour tiles, cards, logo).
+- More admins: Supabase > Authentication > Users > Add user. Every user you add can log in to /admin.html and see all bookings and change pictures, so only add people you trust.
+- Photos: upload them from the admin Pictures tab (no code needed). A photo set there replaces the default one on the site. The default banner is public/images/hero.jpg.
+- SEO: after launch, add the site to Google Search Console and submit /sitemap.xml. Replace www.mziguasafaritours.com with your real domain in index.html, robots.txt and sitemap.xml.
