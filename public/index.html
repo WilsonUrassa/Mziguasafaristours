@@ -317,6 +317,8 @@ footer a{color:var(--sun)}
 <p class="note" style="color:#9fb0a9"><a href="#voucher">Voucher</a> · © 2026 Mzigua Tours &amp; Safari. Climb with the best.</p>
 </div></footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
 <script>
 var R=[["Lemosho",6,2100,"Scenic"],["Lemosho",7,2450,"Scenic"],["Lemosho",8,2800,"Best acclimatization"],["Lemosho",9,3150,"Extended trek"],["Lemosho",10,3500,"Extended trek"],["Machame",6,2100,"Popular"],["Machame",7,2450,"Popular"],["Umbwe",5,1750,"Hardest route"],["Umbwe",6,2100,"Hardest route"],["Umbwe",7,2450,"Hardest route"],["Rongai",5,1750,"Good weather"],["Rongai",6,2100,"Good weather"],["Rongai",7,2450,"Good weather"],["Marangu",5,1750,"Huts"],["Marangu",6,2100,"Huts"],["Marangu",7,2450,"Huts"]];
 var tb=document.querySelector("#rt tbody"),opts="";
@@ -326,9 +328,45 @@ var tr=document.createElement("tr");
 tb.appendChild(tr);opts+="<option>"+l+"</option>"});
 opts+="<option>Day trip / Safari / Other</option>";
 document.getElementById("ps").innerHTML=opts;document.getElementById("v2").innerHTML=opts;
-document.getElementById("bf").addEventListener("submit",function(e){e.preventDefault();var f=e.target;
-var body="Name: "+f.n.value+"\nEmail: "+f.e.value+"\nPackage: "+f.p.value+"\nStart date: "+f.d.value+"\nPeople: "+f.g.value+"\n\n"+f.m.value;
-location.href="mailto:mziguasafaritours@gmail.com?subject="+encodeURIComponent("Booking request – "+f.p.value)+"&body="+encodeURIComponent(body)});
+var bookingClient = window.supabase && window.MZ && window.MZ.url && window.MZ.key
+  ? window.supabase.createClient(window.MZ.url, window.MZ.key)
+  : null;
+document.getElementById("bf").addEventListener("submit",function(e){
+  e.preventDefault();
+  var f=e.target, button=f.querySelector('button[type="submit"]'), note=document.getElementById("bn");
+  if(!bookingClient){
+    note.textContent="Booking service is not configured. Please contact us by WhatsApp or phone.";
+    note.style.color="#b00020";
+    return;
+  }
+  var booking={
+    name:f.n.value.trim(),
+    email:f.e.value.trim(),
+    package:f.p.value,
+    start_date:f.d.value || null,
+    people:parseInt(f.g.value,10) || 1,
+    message:f.m.value.trim() || null,
+    status:"new"
+  };
+  button.disabled=true;
+  button.textContent="Sending request...";
+  note.textContent="Sending your booking securely...";
+  note.style.color="";
+  bookingClient.from("bookings").insert([booking]).then(function(result){
+    if(result.error) throw result.error;
+    f.reset();
+    f.g.value="2";
+    note.textContent="Thank you! Your booking request has been received. Our team will contact you within 24 hours.";
+    note.style.color="#1d6b3a";
+    button.textContent="Request sent";
+  }).catch(function(error){
+    console.error("Mzigua booking submission failed:",error);
+    note.textContent="We could not save your booking. Please try again or contact us on WhatsApp or phone.";
+    note.style.color="#b00020";
+    button.disabled=false;
+    button.textContent="Send booking request";
+  });
+});
 </script>
 <script>
 var IMG={"route-lemosho":"images/route-lemosho.jpg","route-lemosho-1":"images/route-lemosho-1.jpg","route-lemosho-2":"images/route-lemosho-2.jpg","route-lemosho-3":"images/route-lemosho-3.jpg","trip-kilimanjaro":"images/trip-kilimanjaro.jpg",logo:"images/logo.png",hero:"images/hero.jpg"}; /* photo slots: set a name to an image path, e.g. IMG["route-lemosho"]="images/lemosho.jpg" */
