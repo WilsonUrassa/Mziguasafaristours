@@ -58,7 +58,20 @@ rows.forEach(function(r){var tr=el("tr");r.forEach(function(c){var td=el("td");i
 if(!rows.length){var tr=el("tr"),td=el("td","No data yet");td.colSpan=heads.length;tr.appendChild(td);t.appendChild(tr)}box.appendChild(t)}
 function top(a,f,n){var m={};a.forEach(function(x){var k=f(x)||"(direct)";m[k]=(m[k]||0)+1});return Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(x,y){return y[1]-x[1]}).slice(0,n)}
 function fmt(d){return new Date(d).toLocaleString()}
-function show(on){$("login").hidden=on;$("app").hidden=!on;if(on){$("dashboard-status").textContent="Signed in. Loading bookings, visitor statistics and pictures...";load()}}
+function show(on){
+ $("login").hidden=!on;
+ $("app").hidden=!on;
+ $("login").style.display=on?"none":"block";
+ $("app").style.display=on?"block":"none";
+ if(on){
+  $("dashboard-status").textContent="Authentication successful. Opening admin dashboard...";
+  $("dashboard-status").className="ok";
+  try{load()}catch(err){
+   $("dashboard-status").textContent="You are signed in, but the dashboard script stopped: "+(err.message||String(err));
+   $("dashboard-status").className="bad";
+  }
+ }
+}
 function tab(n){$("p1").hidden=n!=1;$("p2").hidden=n!=2;$("t1").setAttribute("aria-pressed",n==1);$("t2").setAttribute("aria-pressed",n==2)}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
 if(sb){
@@ -134,7 +147,19 @@ var GROUPS=[["Home page banner",[["hero","Banner photo at the top of the home pa
 var DUR={lemosho:[6,7,8,9,10],machame:[6,7],umbwe:[5,6,7],rongai:[5,6,7],marangu:[5,6,7]};
 R5.forEach(function(r,i){var rows=[];DUR[r].forEach(function(d){var k="pkg-"+r+"-"+d,L=cap(r)+" "+d+" days";rows.push([k,L+": main photo (card and top of page)"]);[1,2,3].forEach(function(n){rows.push([k+"-"+n,L+": gallery "+n])})});GROUPS.splice(1+i,0,[cap(r)+" packages (each package has its own photos)",rows])});
 var IM={},DEF={hero:"images/hero.jpg","pkg-lemosho-7":"images/lemosho-skull.jpg","pkg-lemosho-7-1":"images/lemosho-sign.jpg","pkg-lemosho-7-2":"images/lemosho-tents.jpg","pkg-lemosho-7-3":"images/lemosho-forest.jpg"};
-function loadPics(){sb.from("site_images").select("*").then(function(r){IM={};(r.data||[]).forEach(function(x){IM[x.slot]=x});draw()})}
+function loadPics(){
+ return sb.from("site_images").select("*").then(function(r){
+  if(r.error){
+   $("dashboard-status").textContent="Bookings dashboard may load, but pictures could not be loaded: "+r.error.message;
+   $("dashboard-status").className="bad";
+   IM={};draw();return;
+  }
+  IM={};(r.data||[]).forEach(function(x){IM[x.slot]=x});draw();
+ }).catch(function(err){
+  $("dashboard-status").textContent="Picture manager failed to load: "+(err.message||String(err));
+  $("dashboard-status").className="bad";
+ });
+}
 function draw(){var box=$("pics");box.textContent="";
 GROUPS.forEach(function(g){box.appendChild(el("h2",g[0]));var grid=el("div",null,"pg");
 g[1].forEach(function(s){var k=s[0],cur=IM[k]?IM[k].path:DEF[k],c=el("div",null,"pc"),th=el("div",null,"th"),b=el("div",null,"b");
