@@ -27,6 +27,7 @@ table{border-collapse:collapse;width:100%;min-width:520px}th,td{padding:9px 12px
 <header><strong>MZIGUA TOURS &amp; SAFARI · Admin</strong>
 <span><button class="tab" id="t1" aria-pressed="true">Bookings and visitors</button> <button class="tab" id="t2" aria-pressed="false">Pictures</button> <button class="tab" id="rf">Refresh</button> <button class="tab" id="out">Sign out</button></span></header>
 <main>
+<div id="dashboard-status" class="bad" role="status" style="margin:0 0 14px"></div>
 <div id="p1"><div class="cards" id="st"></div>
 <h2>Client bookings <button class="g2" id="csv" style="margin-left:10px">Download CSV</button></h2><div class="t" id="bk"></div>
 <div class="g"><div><h2>Top pages (30 days)</h2><div class="t" id="tp"></div></div>
@@ -57,7 +58,7 @@ rows.forEach(function(r){var tr=el("tr");r.forEach(function(c){var td=el("td");i
 if(!rows.length){var tr=el("tr"),td=el("td","No data yet");td.colSpan=heads.length;tr.appendChild(td);t.appendChild(tr)}box.appendChild(t)}
 function top(a,f,n){var m={};a.forEach(function(x){var k=f(x)||"(direct)";m[k]=(m[k]||0)+1});return Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(x,y){return y[1]-x[1]}).slice(0,n)}
 function fmt(d){return new Date(d).toLocaleString()}
-function show(on){$("login").hidden=on;$("app").hidden=!on;if(on)load()}
+function show(on){$("login").hidden=on;$("app").hidden=!on;if(on){$("dashboard-status").textContent="Signed in. Loading bookings, visitor statistics and pictures...";load()}}
 function tab(n){$("p1").hidden=n!=1;$("p2").hidden=n!=2;$("t1").setAttribute("aria-pressed",n==1);$("t2").setAttribute("aria-pressed",n==2)}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
 if(sb){
@@ -85,20 +86,41 @@ $("csv").onclick=function(){var q=function(v){return '"'+String(v==null?"":v).re
 var t=[H.join(",")].concat(BK.map(function(b){return H.map(function(k){return q(b[k])}).join(",")})).join("\n");
 var a=el("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download="mzigua-bookings.csv";a.click()};
 function load(){
-var since=new Date(Date.now()-30*864e5).toISOString();
-Promise.all([sb.from("bookings").select("*").order("created_at",{ascending:false}).limit(1000),
-sb.from("page_views").select("path,device,referrer,language,session_id,created_at").gte("created_at",since).order("created_at",{ascending:false}).limit(5000)]).then(function(r){
-var b=BK=r[0].data||[],v=r[1].data||[],w=Date.now()-7*864e5;
-var v7=v.filter(function(x){return new Date(x.created_at)>w}),u={};v.forEach(function(x){if(x.session_id)u[x.session_id]=1});
-$("st").textContent="";[["Bookings",b.length],["New bookings",b.filter(function(x){return x.status=="new"}).length],["Page views (7 days)",v7.length],["Page views (30 days)",v.length],["Visitors (30 days)",Object.keys(u).length]].forEach(function(c){var d=el("div");d.className="c";d.appendChild(el("b",c[1]));d.appendChild(el("span",c[0]));$("st").appendChild(d)});
-tbl($("bk"),["Received","Name","Email","Package","Start","People","Message","Status"],b.map(function(x){var s=el("select");["new","contacted","confirmed","cancelled"].forEach(function(o){var op=el("option",o);if(o==x.status)op.selected=true;s.appendChild(op)});
-s.onchange=function(){sb.from("bookings").update({status:s.value}).eq("id",x.id).then(function(r){if(r.error)alert(r.error.message)})};
-return [fmt(x.created_at),x.name,x.email,x.package,x.start_date,x.people,x.message,s]}));
-tbl($("tp"),["Page","Views"],top(v,function(x){return x.path},10));
-tbl($("dv"),["Device","Views"],top(v,function(x){return x.device},5));
-tbl($("rr"),["Referrer","Views"],top(v,function(x){try{return x.referrer?new URL(x.referrer).hostname:""}catch(e){return ""}},10));
-tbl($("rv"),["Time","Page","Device","Language","Referrer"],v.slice(0,50).map(function(x){return [fmt(x.created_at),x.path,x.device,x.language,x.referrer]}))});
-loadPics()}
+var since=new Date(Date.now()-30*864e5);
+$("dashboard-status").textContent="Loading dashboard data...";
+Promise.all([
+ sb.from("bookings").select("*").order("created_at",{ascending:false}).limit(1000),
+ sb.from("page_views").select("path,device,referrer,language,session_id,created_at").gte("created_at",since.toISOString()).order("created_at",{ascending:false}).limit(5000)
+]).then(function(r){
+ var errors=[];
+ if(r[0].error)errors.push("Bookings: "+r[0].error.message);
+ if(r[1].error)errors.push("Visitor statistics: "+r[1].error.message);
+ var b=BK=r[0].data||[],v=r[1].data||[],w=Date.now()-7*864e5;
+ var v7=v.filter(function(x){return new Date(x.created_at)>w}),u={};
+ v.forEach(function(x){if(x.session_id)u[x.session_id]=1});
+ $("st").textContent="";
+ [["Bookings",b.length],["New bookings",b.filter(function(x){return x.status=="new"}).length],["Page views (7 days)",v7.length],["Page views (30 days)",v.length],["Visitors (30 days)",Object.keys(u).length]].forEach(function(c){
+  var d=el("div");d.className="c";d.appendChild(el("b",c[1]));d.appendChild(el("span",c[0]));$("st").appendChild(d)
+ });
+ if(!r[0].error)tbl($("bk"),["Received","Name","Email","Package","Start","People","Message","Status"],b.map(function(x){
+  var sel=el("select");["new","contacted","confirmed","cancelled"].forEach(function(o){var op=el("option",o);if(o==x.status)op.selected=true;sel.appendChild(op)});
+  sel.onchange=function(){sb.from("bookings").update({status:sel.value}).eq("id",x.id).then(function(q){if(q.error)alert("Could not update booking: "+q.error.message)})};
+  return [fmt(x.created_at),x.name,x.email,x.package,x.start_date,x.people,x.message,sel]
+ }));
+ if(!r[1].error){
+  tbl($("tp"),["Page","Views"],top(v,function(x){return x.path},10));
+  tbl($("dv"),["Device","Views"],top(v,function(x){return x.device},5));
+  tbl($("rr"),["Referrer","Views"],top(v,function(x){try{return x.referrer?new URL(x.referrer).hostname:""}catch(e){return ""}},10));
+  tbl($("rv"),["Time","Page","Device","Language","Referrer"],v.slice(0,50).map(function(x){return [fmt(x.created_at),x.path,x.device,x.language,x.referrer]}))
+ }
+ if(errors.length){$("dashboard-status").textContent="Signed in, but some dashboard data could not load: "+errors.join(" | ");$("dashboard-status").className="bad"}
+ else{$("dashboard-status").textContent="Dashboard loaded successfully.";$("dashboard-status").className="ok"}
+}).catch(function(err){
+ $("dashboard-status").textContent="You are signed in, but the dashboard encountered an error while loading: "+(err.message||String(err));
+ $("dashboard-status").className="bad";
+});
+loadPics();
+}
 /* ---------- pictures ---------- */
 var R5=["lemosho","machame","umbwe","rongai","marangu"],cap=function(s){return s[0].toUpperCase()+s.slice(1)};
 var GROUPS=[["Home page banner",[["hero","Banner photo at the top of the home page"]]],
