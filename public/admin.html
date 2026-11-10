@@ -20,9 +20,9 @@ table{border-collapse:collapse;width:100%;min-width:520px}th,td{padding:9px 12px
 .ok{color:#1d6b3a}.bad{color:#b00020}
 </style></head><body>
 <div id="login" class="box"><h1>Admin login</h1>
-<form id="lf"><label>Email<input id="em" type="email" required autocomplete="username"></label>
+<form id="lf" onsubmit="return false" autocomplete="on"><label>Email<input id="em" type="email" required autocomplete="username"></label>
 <label>Password<input id="pw" type="password" required autocomplete="current-password"></label>
-<button>Sign in</button><p id="err" role="alert"></p></form></div>
+<button type="button" id="loginBtn">Sign in</button><p id="err" role="alert">Admin login script is ready.</p></form></div>
 <div id="app" hidden>
 <header><strong>MZIGUA TOURS &amp; SAFARI · Admin</strong>
 <span><button class="tab" id="t1" aria-pressed="true">Bookings and visitors</button> <button class="tab" id="t2" aria-pressed="false">Pictures</button> <button class="tab" id="rf">Refresh</button> <button class="tab" id="out">Sign out</button></span></header>
@@ -80,19 +80,27 @@ if(sb){
     else show(!!(r.data&&r.data.session));
   }).catch(function(err){loginError("Supabase connection failed while checking session: "+(err.message||"Network error"));});
 }
-$("lf").onsubmit=function(e){
-  e.preventDefault();
-  if(!sb){if(!$("err").textContent)loginError("Supabase is not available. Check config.js and the Supabase library.");return;}
-  var button=$("lf").querySelector('button[type="submit"],button');
+$("loginBtn").onclick=async function(){
+  var button=$("loginBtn");
+  if(!sb){loginError("Supabase client is unavailable. Check the configuration and browser connection.");return;}
   button.disabled=true;button.textContent="Signing in...";
-  $("err").textContent="";
-  sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value})
-    .then(function(r){
-      if(r.error)loginError("Sign-in failed: "+r.error.message);
-      else{ $("pw").value=""; show(true); }
-    })
-    .catch(function(err){loginError("Login request failed: "+(err.message||"Network error. Check your internet connection."));})
-    .finally(function(){button.disabled=false;button.textContent="Sign in";});
+  $("err").textContent="Connecting to Supabase...";
+  try{
+    var result=await Promise.race([
+      sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value}),
+      new Promise(function(_,reject){setTimeout(function(){reject(new Error("Login request timed out after 15 seconds. Check the browser Network tab and Supabase availability."));},15000);})
+    ]);
+    if(result.error){loginError("Sign-in failed: "+result.error.message);return;}
+    if(!result.data||!result.data.session){loginError("Supabase returned no active session. Check the account and authentication settings.");return;}
+    $("pw").value="";
+    $("err").textContent="Login successful. Opening dashboard...";
+    $("err").className="ok";
+    show(true);
+  }catch(err){
+    loginError("Login could not complete: "+(err&&err.message?err.message:String(err)));
+  }finally{
+    button.disabled=false;button.textContent="Sign in";
+  }
 };
 $("out").onclick=function(){sb.auth.signOut().then(function(){show(false)})};$("rf").onclick=function(){load()};
 $("csv").onclick=function(){var q=function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'},H=["created_at","name","email","package","start_date","people","message","status"];
