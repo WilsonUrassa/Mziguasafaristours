@@ -41,8 +41,16 @@ table{border-collapse:collapse;width:100%;min-width:520px}th,td{padding:9px 12px
 <script src="config.js"></script>
 <script>
 var $=function(i){return document.getElementById(i)};
-if(!MZ.url||!MZ.key){$("err").textContent="Add your Supabase URL and key in config.js first."}
-var sb=window.supabase&&MZ.url?supabase.createClient(MZ.url,MZ.key):null,BK=[];
+var cfg=window.MZ||null, sb=null, BK=[];
+function loginError(message){$("err").textContent=message;$("err").className="bad"}
+if(!cfg||!cfg.url||!cfg.key){
+  loginError("Supabase is not configured. Check public/config.js and confirm it loads before admin.html.");
+}else if(!window.supabase||!window.supabase.createClient){
+  loginError("Supabase library did not load. Check your internet connection or CDN access, then refresh.");
+}else{
+  try{sb=window.supabase.createClient(cfg.url,cfg.key);}
+  catch(initError){loginError("Could not initialize Supabase: "+(initError.message||"Unknown configuration error"));}
+}
 function el(t,x,c){var e=document.createElement(t);if(x!=null)e.textContent=x;if(c)e.className=c;return e}
 function tbl(box,heads,rows){box.textContent="";var t=el("table"),h=el("tr");heads.forEach(function(x){h.appendChild(el("th",x))});t.appendChild(h);
 rows.forEach(function(r){var tr=el("tr");r.forEach(function(c){var td=el("td");if(c&&c.nodeType)td.appendChild(c);else td.textContent=c==null?"":c;tr.appendChild(td)});t.appendChild(tr)});
@@ -52,8 +60,26 @@ function fmt(d){return new Date(d).toLocaleString()}
 function show(on){$("login").hidden=on;$("app").hidden=!on;if(on)load()}
 function tab(n){$("p1").hidden=n!=1;$("p2").hidden=n!=2;$("t1").setAttribute("aria-pressed",n==1);$("t2").setAttribute("aria-pressed",n==2)}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
-if(sb)sb.auth.getSession().then(function(r){show(!!r.data.session)});
-$("lf").onsubmit=function(e){e.preventDefault();if(!sb)return;sb.auth.signInWithPassword({email:$("em").value,password:$("pw").value}).then(function(r){if(r.error)$("err").textContent=r.error.message;else show(true)})};
+if(sb){
+  sb.auth.getSession().then(function(r){
+    if(r.error)loginError("Could not check existing session: "+r.error.message);
+    else show(!!(r.data&&r.data.session));
+  }).catch(function(err){loginError("Supabase connection failed while checking session: "+(err.message||"Network error"));});
+}
+$("lf").onsubmit=function(e){
+  e.preventDefault();
+  if(!sb){if(!$("err").textContent)loginError("Supabase is not available. Check config.js and the Supabase library.");return;}
+  var button=$("lf").querySelector('button[type="submit"],button');
+  button.disabled=true;button.textContent="Signing in...";
+  $("err").textContent="";
+  sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value})
+    .then(function(r){
+      if(r.error)loginError("Sign-in failed: "+r.error.message);
+      else{ $("pw").value=""; show(true); }
+    })
+    .catch(function(err){loginError("Login request failed: "+(err.message||"Network error. Check your internet connection."));})
+    .finally(function(){button.disabled=false;button.textContent="Sign in";});
+};
 $("out").onclick=function(){sb.auth.signOut().then(function(){show(false)})};$("rf").onclick=function(){load()};
 $("csv").onclick=function(){var q=function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'},H=["created_at","name","email","package","start_date","people","message","status"];
 var t=[H.join(",")].concat(BK.map(function(b){return H.map(function(k){return q(b[k])}).join(",")})).join("\n");
