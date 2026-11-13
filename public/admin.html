@@ -93,20 +93,24 @@ function resetLoginButton(){
   button.textContent="Sign in";
 }
 if(sb){
-  sb.auth.getSession().then(function(r){
+  // Do not block the login screen while getSession waits on the network.
+  // A slow session check must never make the form look broken.
+  setLoginReady();
+  Promise.race([
+    sb.auth.getSession(),
+    new Promise(function(_,reject){setTimeout(function(){reject(new Error("Session check timed out"));},5000);})
+  ]).then(function(r){
     if(r.error){
-      loginError("Could not check your existing session: "+r.error.message);
+      console.warn("Existing session check failed:",r.error.message);
       return;
     }
     if(r.data&&r.data.session){
       $("err").textContent="Existing session found. Opening dashboard…";
       $("err").className="ok";
       show(true);
-    }else{
-      setLoginReady();
     }
   }).catch(function(err){
-    loginError("Could not connect to Supabase: "+(err&&err.message?err.message:"Network error"));
+    console.warn("Existing session check did not complete:",err.message||err);
   });
 }
 $("showPw").onclick=function(){
@@ -121,7 +125,7 @@ $("lf").addEventListener("submit",async function(e){
   var button=$("loginBtn"),email=$("em").value.trim(),password=$("pw").value;
   if(!sb){loginError("Supabase client is unavailable. Check public/config.js and refresh the page.");return;}
   if(!email||!password){loginError("Enter both your email address and password.");return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){loginError("Enter a valid administrator email address.");return;}
+  if(!/^[^\s@]+@[^s@]+\.[^s@]+$/.test(email)){loginError("Enter a valid administrator email address.");return;}
   loginBusy=true;
   button.disabled=true;
   button.textContent="Signing in…";
@@ -130,7 +134,7 @@ $("lf").addEventListener("submit",async function(e){
   try{
     var result=await Promise.race([
       sb.auth.signInWithPassword({email:email,password:password}),
-      new Promise(function(_,reject){setTimeout(function(){reject(new Error("Authentication timed out after 15 seconds."));},15000);})
+      new Promise(function(_,reject){setTimeout(function(){reject(new Error("Authentication timed out after 15 seconds. Supabase did not respond."));},15000);})
     ]);
     if(result.error){
       loginError("Sign-in failed: "+result.error.message);
@@ -139,7 +143,7 @@ $("lf").addEventListener("submit",async function(e){
       return;
     }
     if(!result.data||!result.data.session){
-      loginError("Supabase accepted the request but returned no session. Check that this user exists and email/password sign-in is enabled.");
+      loginError("Supabase returned no active session. Check that this administrator exists in Supabase Authentication.");
       resetLoginButton();
       loginBusy=false;
       return;
@@ -148,12 +152,6 @@ $("lf").addEventListener("submit",async function(e){
     $("err").textContent="Authentication successful. Loading dashboard…";
     $("err").className="ok";
     show(true);
-    setTimeout(function(){
-      if(!$("app").hidden){
-        $("dashboard-status").textContent="Signed in successfully. If data is missing, the problem is with dashboard permissions/data—not your login.";
-        $("dashboard-status").className="ok";
-      }
-    },250);
   }catch(err){
     loginError("Login could not complete: "+(err&&err.message?err.message:"Network error"));
     resetLoginButton();
