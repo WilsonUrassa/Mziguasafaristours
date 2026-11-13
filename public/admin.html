@@ -125,7 +125,7 @@ $("lf").addEventListener("submit",async function(e){
   var button=$("loginBtn"),email=$("em").value.trim(),password=$("pw").value;
   if(!sb){loginError("Supabase client is unavailable. Check public/config.js and refresh the page.");return;}
   if(!email||!password){loginError("Enter both your email address and password.");return;}
-  if(!/^[^\s@]+@[^s@]+\.[^s@]+$/.test(email)){loginError("Enter a valid administrator email address.");return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){loginError("Enter a valid administrator email address.");return;}
   loginBusy=true;
   button.disabled=true;
   button.textContent="Signing in…";
