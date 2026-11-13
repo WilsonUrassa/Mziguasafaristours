@@ -64,7 +64,7 @@ function el(t,x,c){var e=document.createElement(t);if(x!=null)e.textContent=x;if
 function tbl(box,heads,rows){box.textContent="";var t=el("table"),h=el("tr");heads.forEach(function(x){h.appendChild(el("th",x))});t.appendChild(h);
 rows.forEach(function(r){var tr=el("tr");r.forEach(function(c){var td=el("td");if(c&&c.nodeType)td.appendChild(c);else td.textContent=c==null?"":c;tr.appendChild(td)});t.appendChild(tr)});
 if(!rows.length){var tr=el("tr"),td=el("td","No data yet");td.colSpan=heads.length;tr.appendChild(td);t.appendChild(tr)}box.appendChild(t)}
-function top(a,f,n){var m={};a.forEach(function(x){var k=f(x)||"(direct)";m[k]=(m[k]||0)+1});return Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(x,y){return y[1]-x[1]}).slice(0,n)}
+function tally(a,f,n){var m={};a.forEach(function(x){var k=f(x)||"(direct)";m[k]=(m[k]||0)+1});return Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(x,y){return y[1]-x[1]}).slice(0,n)}
 function fmt(d){return new Date(d).toLocaleString()}
 function show(on){
  $("login").hidden=!on;
@@ -187,9 +187,9 @@ Promise.all([
   return [fmt(x.created_at),x.name,x.email,x.package,x.start_date,x.people,x.message,sel]
  }));
  if(!r[1].error){
-  tbl($("tp"),["Page","Views"],top(v,function(x){return x.path},10));
-  tbl($("dv"),["Device","Views"],top(v,function(x){return x.device},5));
-  tbl($("rr"),["Referrer","Views"],top(v,function(x){try{return x.referrer?new URL(x.referrer).hostname:""}catch(e){return ""}},10));
+  tbl($("tp"),["Page","Views"],tally(v,function(x){return x.path},10));
+  tbl($("dv"),["Device","Views"],tally(v,function(x){return x.device},5));
+  tbl($("rr"),["Referrer","Views"],tally(v,function(x){try{return x.referrer?new URL(x.referrer).hostname:""}catch(e){return ""}},10));
   tbl($("rv"),["Time","Page","Device","Language","Referrer"],v.slice(0,50).map(function(x){return [fmt(x.created_at),x.path,x.device,x.language,x.referrer]}))
  }
  if(errors.length){$("dashboard-status").textContent="Signed in, but some dashboard data could not load: "+errors.join(" | ");$("dashboard-status").className="bad"}
