@@ -4,7 +4,7 @@
 <style>
 *{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#f4f7f5;color:#1c2422}
 header{background:#12332b;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:3px solid #e8a03a}
-main{max-width:1100px;margin:0 auto;padding:20px}.box{max-width:360px;margin:12vh auto;background:#fff;padding:28px;border-radius:14px;border:1px solid #d5ddd8}
+main{max-width:1100px;margin:0 auto;padding:20px}.login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top left,#1d4a3f 0,#12332b 42%,#f4f7f5 100%)}.box{width:min(440px,100%);margin:0;background:#fff;padding:34px;border-radius:20px;border:1px solid #d5ddd8;box-shadow:0 24px 70px #12332b33}.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}.login-mark{width:48px;height:48px;border-radius:14px;background:#e8a03a;display:grid;place-items:center;color:#12332b;font-weight:900;font-size:1.1rem}.login-brand strong{display:block;color:#12332b}.login-brand small{display:block;color:#58655f}.login-title{margin:0 0 6px;font-size:2rem}.login-sub{margin:0 0 22px;color:#58655f}.login-field{position:relative}.login-field input{padding-right:48px}.show-pass{position:absolute;right:8px;bottom:7px;border:0;background:transparent;color:#58655f;padding:7px 9px;border-radius:7px;font-size:.8rem}.show-pass:hover{background:#f0f4f2}.login-btn{width:100%;padding:12px 18px;border-radius:10px;margin-top:6px}.login-btn[disabled]{opacity:.65;cursor:wait}.login-status{min-height:24px;margin:14px 0 0;font-size:.9rem}.login-help{margin-top:20px;padding-top:16px;border-top:1px solid #e3e9e5;color:#58655f;font-size:.8rem}
 label{display:grid;gap:4px;margin:12px 0;font-weight:600}input,select{font:inherit;padding:10px;border:1px solid #cbd5d0;border-radius:8px;width:100%}
 button{background:#e8a03a;border:0;border-radius:999px;padding:9px 18px;cursor:pointer;font:inherit;font-weight:600;color:#1b1405}
 button.g2{background:#fff;border:1px solid #cbd5d0;color:#1c2422}button.tab{background:#ffffff22;color:#fff}button.tab[aria-pressed=true]{background:#e8a03a;color:#1b1405}
@@ -19,10 +19,17 @@ table{border-collapse:collapse;width:100%;min-width:520px}th,td{padding:9px 12px
 .pc .b{padding:10px 12px;display:grid;gap:6px}.pc small{color:#58655f;word-break:break-all}.pc .r{display:flex;gap:6px;flex-wrap:wrap}.pc button{padding:6px 12px;font-size:.85rem}
 .ok{color:#1d6b3a}.bad{color:#b00020}
 </style></head><body>
-<div id="login" class="box"><h1>Admin login</h1>
-<form id="lf" onsubmit="return false" autocomplete="on"><label>Email<input id="em" type="email" required autocomplete="username"></label>
-<label>Password<input id="pw" type="password" required autocomplete="current-password"></label>
-<button type="button" id="loginBtn">Sign in</button><p id="err" role="alert">Admin login script is ready.</p></form></div>
+<div id="login" class="login-shell"><div class="box">
+<div class="login-brand"><div class="login-mark">M</div><div><strong>MZIGUA TOURS &amp; SAFARI</strong><small>Secure administration</small></div></div>
+<h1 class="login-title">Welcome back</h1><p class="login-sub">Sign in to manage bookings, visitors and website pictures.</p>
+<form id="lf" autocomplete="on" novalidate>
+<label class="login-field">Email<input id="em" type="email" required autocomplete="username" inputmode="email" placeholder="admin@example.com"></label>
+<label class="login-field">Password<input id="pw" type="password" required autocomplete="current-password" placeholder="Enter your password"><button class="show-pass" type="button" id="showPw" aria-label="Show password">Show</button></label>
+<button class="login-btn" type="submit" id="loginBtn">Sign in</button>
+<p id="err" class="login-status" role="alert" aria-live="polite">Checking secure connection…</p>
+</form>
+<div class="login-help">This page uses Supabase Authentication. Your password is sent only to the configured Supabase project; it is not stored by this page.</div>
+</div></div>
 <div id="app" hidden>
 <header><strong>MZIGUA TOURS &amp; SAFARI · Admin</strong>
 <span><button class="tab" id="t1" aria-pressed="true">Bookings and visitors</button> <button class="tab" id="t2" aria-pressed="false">Pictures</button> <button class="tab" id="rf">Refresh</button> <button class="tab" id="out">Sign out</button></span></header>
@@ -74,34 +81,50 @@ function show(on){
 }
 function tab(n){$("p1").hidden=n!=1;$("p2").hidden=n!=2;$("t1").setAttribute("aria-pressed",n==1);$("t2").setAttribute("aria-pressed",n==2)}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
+function setLoginReady(){
+  if(!sb){loginError("Supabase is not available. Check the Supabase URL/key in config.js and make sure the Supabase CDN is reachable.");return;}
+  $("err").textContent="Secure connection ready. Enter your administrator email and password.";
+  $("err").className="ok";
+}
 if(sb){
   sb.auth.getSession().then(function(r){
-    if(r.error)loginError("Could not check existing session: "+r.error.message);
-    else show(!!(r.data&&r.data.session));
-  }).catch(function(err){loginError("Supabase connection failed while checking session: "+(err.message||"Network error"));});
+    if(r.error) loginError("Could not check your session: "+r.error.message);
+    else if(r.data&&r.data.session) show(true);
+    else setLoginReady();
+  }).catch(function(err){loginError("Could not connect to Supabase: "+(err.message||"Network error"));});
+  sb.auth.onAuthStateChange(function(event,session){
+    if(event==="SIGNED_IN" && session) show(true);
+    if(event==="SIGNED_OUT") show(false);
+  });
 }
-$("loginBtn").onclick=async function(){
-  var button=$("loginBtn");
-  if(!sb){loginError("Supabase client is unavailable. Check the configuration and browser connection.");return;}
-  button.disabled=true;button.textContent="Signing in...";
-  $("err").textContent="Connecting to Supabase...";
+$("showPw").onclick=function(){
+  var p=$("pw"),visible=p.type==="text";
+  p.type=visible?"password":"text";
+  $("showPw").textContent=visible?"Show":"Hide";
+};
+$("lf").addEventListener("submit",async function(e){
+  e.preventDefault();
+  var button=$("loginBtn"),email=$("em").value.trim(),password=$("pw").value;
+  if(!sb){loginError("Supabase client is unavailable. Check configuration and refresh the page.");return;}
+  if(!email||!password){loginError("Enter both your email address and password.");return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){loginError("Enter a valid administrator email address.");return;}
+  button.disabled=true;button.textContent="Signing in…";$("err").textContent="Authenticating securely…";$("err").className="";
+  var timeout=setTimeout(function(){button.disabled=false;button.textContent="Sign in";loginError("The authentication request is taking too long. Check your internet connection and Supabase project availability.");},15000);
   try{
-    var result=await Promise.race([
-      sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value}),
-      new Promise(function(_,reject){setTimeout(function(){reject(new Error("Login request timed out after 15 seconds. Check the browser Network tab and Supabase availability."));},15000);})
-    ]);
+    var result=await sb.auth.signInWithPassword({email:email,password:password});
+    clearTimeout(timeout);
     if(result.error){loginError("Sign-in failed: "+result.error.message);return;}
-    if(!result.data||!result.data.session){loginError("Supabase returned no active session. Check the account and authentication settings.");return;}
+    if(!result.data||!result.data.session){loginError("Authentication completed without a session. Check the Supabase Auth user and project configuration.");return;}
     $("pw").value="";
-    $("err").textContent="Login successful. Opening dashboard...";
-    $("err").className="ok";
+    $("err").textContent="Signed in. Loading your dashboard…";$("err").className="ok";
     show(true);
   }catch(err){
-    loginError("Login could not complete: "+(err&&err.message?err.message:String(err)));
+    clearTimeout(timeout);
+    loginError("Login could not complete: "+(err&&err.message?err.message:"Network error"));
   }finally{
-    button.disabled=false;button.textContent="Sign in";
+    if(!$("app").hidden){button.disabled=false;button.textContent="Sign in";}
   }
-};
+});
 $("out").onclick=function(){sb.auth.signOut().then(function(){show(false)})};$("rf").onclick=function(){load()};
 $("csv").onclick=function(){var q=function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'},H=["created_at","name","email","package","start_date","people","message","status"];
 var t=[H.join(",")].concat(BK.map(function(b){return H.map(function(k){return q(b[k])}).join(",")})).join("\n");
