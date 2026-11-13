@@ -81,48 +81,84 @@ function show(on){
 }
 function tab(n){$("p1").hidden=n!=1;$("p2").hidden=n!=2;$("t1").setAttribute("aria-pressed",n==1);$("t2").setAttribute("aria-pressed",n==2)}
 $("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
+var loginBusy=false;
 function setLoginReady(){
-  if(!sb){loginError("Supabase is not available. Check the Supabase URL/key in config.js and make sure the Supabase CDN is reachable.");return;}
+  if(!sb){loginError("Supabase is not available. Check public/config.js and refresh.");return;}
   $("err").textContent="Secure connection ready. Enter your administrator email and password.";
   $("err").className="ok";
 }
+function resetLoginButton(){
+  var button=$("loginBtn");
+  button.disabled=false;
+  button.textContent="Sign in";
+}
 if(sb){
   sb.auth.getSession().then(function(r){
-    if(r.error) loginError("Could not check your session: "+r.error.message);
-    else if(r.data&&r.data.session) show(true);
-    else setLoginReady();
-  }).catch(function(err){loginError("Could not connect to Supabase: "+(err.message||"Network error"));});
-  sb.auth.onAuthStateChange(function(event,session){
-    if(event==="SIGNED_IN" && session) show(true);
-    if(event==="SIGNED_OUT") show(false);
+    if(r.error){
+      loginError("Could not check your existing session: "+r.error.message);
+      return;
+    }
+    if(r.data&&r.data.session){
+      $("err").textContent="Existing session found. Opening dashboard…";
+      $("err").className="ok";
+      show(true);
+    }else{
+      setLoginReady();
+    }
+  }).catch(function(err){
+    loginError("Could not connect to Supabase: "+(err&&err.message?err.message:"Network error"));
   });
 }
 $("showPw").onclick=function(){
   var p=$("pw"),visible=p.type==="text";
   p.type=visible?"password":"text";
   $("showPw").textContent=visible?"Show":"Hide";
+  $("showPw").setAttribute("aria-label",visible?"Show password":"Hide password");
 };
 $("lf").addEventListener("submit",async function(e){
   e.preventDefault();
+  if(loginBusy)return;
   var button=$("loginBtn"),email=$("em").value.trim(),password=$("pw").value;
-  if(!sb){loginError("Supabase client is unavailable. Check configuration and refresh the page.");return;}
+  if(!sb){loginError("Supabase client is unavailable. Check public/config.js and refresh the page.");return;}
   if(!email||!password){loginError("Enter both your email address and password.");return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){loginError("Enter a valid administrator email address.");return;}
-  button.disabled=true;button.textContent="Signing in…";$("err").textContent="Authenticating securely…";$("err").className="";
-  var timeout=setTimeout(function(){button.disabled=false;button.textContent="Sign in";loginError("The authentication request is taking too long. Check your internet connection and Supabase project availability.");},15000);
+  loginBusy=true;
+  button.disabled=true;
+  button.textContent="Signing in…";
+  $("err").textContent="Authenticating with Supabase…";
+  $("err").className="";
   try{
-    var result=await sb.auth.signInWithPassword({email:email,password:password});
-    clearTimeout(timeout);
-    if(result.error){loginError("Sign-in failed: "+result.error.message);return;}
-    if(!result.data||!result.data.session){loginError("Authentication completed without a session. Check the Supabase Auth user and project configuration.");return;}
+    var result=await Promise.race([
+      sb.auth.signInWithPassword({email:email,password:password}),
+      new Promise(function(_,reject){setTimeout(function(){reject(new Error("Authentication timed out after 15 seconds."));},15000);})
+    ]);
+    if(result.error){
+      loginError("Sign-in failed: "+result.error.message);
+      resetLoginButton();
+      loginBusy=false;
+      return;
+    }
+    if(!result.data||!result.data.session){
+      loginError("Supabase accepted the request but returned no session. Check that this user exists and email/password sign-in is enabled.");
+      resetLoginButton();
+      loginBusy=false;
+      return;
+    }
     $("pw").value="";
-    $("err").textContent="Signed in. Loading your dashboard…";$("err").className="ok";
+    $("err").textContent="Authentication successful. Loading dashboard…";
+    $("err").className="ok";
     show(true);
+    setTimeout(function(){
+      if(!$("app").hidden){
+        $("dashboard-status").textContent="Signed in successfully. If data is missing, the problem is with dashboard permissions/data—not your login.";
+        $("dashboard-status").className="ok";
+      }
+    },250);
   }catch(err){
-    clearTimeout(timeout);
     loginError("Login could not complete: "+(err&&err.message?err.message:"Network error"));
+    resetLoginButton();
   }finally{
-    if(!$("app").hidden){button.disabled=false;button.textContent="Sign in";}
+    loginBusy=false;
   }
 });
 $("out").onclick=function(){sb.auth.signOut().then(function(){show(false)})};$("rf").onclick=function(){load()};
